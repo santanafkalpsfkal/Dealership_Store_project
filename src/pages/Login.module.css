@@ -86,22 +86,6 @@
 .terms { margin-top: 14px; font-size: 11px; color: var(--text3); text-align: center; line-height: 1.6; }
 .link  { background: none; border: none; font-size: inherit; color: var(--text2); font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0; }
 
-.adminDemoBtn {
-  margin: 10px auto 0;
-  display: block;
-  background: var(--surface2);
-  border: 1px dashed var(--accent2);
-  color: var(--accent2);
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.adminDemoBtn:hover {
-  background: var(--accent-dim);
-}
-
 @media (max-width: 768px) {
   .page  { grid-template-columns: 1fr; }
   .panel { display: none; }

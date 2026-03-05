@@ -42,21 +42,6 @@ export default function LoginPage() {
   };
 
   const switchMode = m => { setMode(m); setForm({ name:'', email:'', password:'', confirm:'' }); setAuthError(''); };
-  const fillAdminDemo = () => {
-    setMode('login');
-    setAuthError('');
-    setForm({ name: '', email: adminEmail, password: adminPassword, confirm: '' });
-  };
-
-  const loginAdminDemo = async () => {
-    if (submitting) return;
-    setMode('login');
-    setAuthError('');
-    setSubmitting(true);
-    const ok = await login(adminEmail, adminPassword);
-    setSubmitting(false);
-    if (ok) navigate('/admin');
-  };
 
   return (
     <main className={s.page}>
@@ -167,12 +152,6 @@ export default function LoginPage() {
         <p className={s.terms} style={{marginTop:'6px'}}>
           24 días siempre · Más garantías
         </p>
-        <button type="button" className={s.adminDemoBtn} onClick={fillAdminDemo}>
-          Usar acceso admin demo
-        </button>
-        <button type="button" className={s.adminDemoBtn} onClick={loginAdminDemo} disabled={submitting}>
-          Entrar directo al panel admin
-        </button>
         <p className={s.terms} style={{marginTop:'6px'}}>
           Admin demo: <code>{adminEmail}</code> / <code>{adminPassword}</code>
         </p>

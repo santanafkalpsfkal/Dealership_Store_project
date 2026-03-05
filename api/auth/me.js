@@ -1,44 +1,29 @@
-import { sendJson, requireMethod, readCookie } from '../_lib/http.js';
-import { verifyAuthToken } from '../_lib/auth.js';
-import { ensureUsersTable, findUserById } from '../_lib/users.js';
+import { requireAuth } from '../../src/lib/auth.js';
+import db, { ensureSchema } from '../../src/lib/db.js';
 
-export default async function handler(req, res) {
-  if (!requireMethod(req, res, 'GET')) return;
+async function handler(req, res) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Metodo no permitido' });
+  }
 
   try {
-    await ensureUsersTable();
-
-    const authHeader = req.headers?.authorization || '';
-    const bearer = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
-    const cookieToken = readCookie(req, 'mp_token');
-    const token = bearer || cookieToken;
-
-    if (!token) {
-      sendJson(res, 401, { ok: false, message: 'No autenticado' });
-      return;
-    }
-
-    const payload = verifyAuthToken(token);
-    if (!payload?.sub) {
-      sendJson(res, 401, { ok: false, message: 'Token invalido' });
-      return;
-    }
-
-    const user = await findUserById(payload.sub);
+    await ensureSchema();
+    const user = await db.findUserByEmail(req.user.email);
     if (!user) {
-      sendJson(res, 401, { ok: false, message: 'Usuario no encontrado' });
-      return;
+      return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    sendJson(res, 200, {
-      ok: true,
-      user: { id: user.id, name: user.name, email: user.email },
+    const { password: _ignored, ...userWithoutPassword } = user;
+
+    return res.status(200).json({
+      user: userWithoutPassword,
     });
   } catch (error) {
-    sendJson(res, 500, {
-      ok: false,
-      message: 'No se pudo validar la sesion',
+    return res.status(500).json({
+      error: 'Error al obtener usuario',
       detail: process.env.NODE_ENV === 'development' ? String(error.message || error) : undefined,
     });
   }
 }
+
+export default requireAuth(handler);

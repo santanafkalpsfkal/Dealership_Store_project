@@ -1,58 +1,35 @@
-import { sendJson, requireMethod, getBody, setAuthCookie } from '../_lib/http.js';
-import { signAuthToken } from '../_lib/auth.js';
-import { ensureUsersTable, findUserByEmail, createUser } from '../_lib/users.js';
-
-function validateInput(body) {
-  const name = (body?.name || '').trim();
-  const email = (body?.email || '').trim().toLowerCase();
-  const password = body?.password || '';
-
-  if (!name || !email || !password) {
-    return { ok: false, message: 'Completa todos los campos' };
-  }
-
-  if (!email.includes('@')) {
-    return { ok: false, message: 'Correo invalido' };
-  }
-
-  if (password.length < 6) {
-    return { ok: false, message: 'La contrasena debe tener al menos 6 caracteres' };
-  }
-
-  return { ok: true, value: { name, email, password } };
-}
+import { registerUser } from '../../src/lib/auth.js';
 
 export default async function handler(req, res) {
-  if (!requireMethod(req, res, 'POST')) return;
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Metodo no permitido' });
+  }
 
   try {
-    await ensureUsersTable();
+    const { nombre, name, email, password } = req.body || {};
 
-    const body = getBody(req);
-    const parsed = validateInput(body);
-    if (!parsed.ok) {
-      sendJson(res, 400, { ok: false, message: parsed.message });
-      return;
+    if (!(nombre || name) || !email || !password) {
+      return res.status(400).json({ error: 'Todos los campos son requeridos' });
     }
 
-    const existing = await findUserByEmail(parsed.value.email);
-    if (existing) {
-      sendJson(res, 409, { ok: false, message: 'Ese correo ya esta registrado' });
-      return;
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'La contrasena debe tener al menos 6 caracteres' });
     }
 
-    const user = await createUser(parsed.value);
-    const token = signAuthToken(user);
-    setAuthCookie(res, token);
+    const result = await registerUser({ nombre, name, email, password }, req, res);
 
-    sendJson(res, 201, {
-      ok: true,
-      user: { id: user.id, name: user.name, email: user.email },
+    return res.status(201).json({
+      message: 'Usuario registrado exitosamente',
+      user: result.user,
+      token: result.token,
     });
   } catch (error) {
-    sendJson(res, 500, {
-      ok: false,
-      message: 'No se pudo crear la cuenta',
+    if (error.message === 'El email ya esta registrado') {
+      return res.status(400).json({ error: error.message });
+    }
+
+    return res.status(500).json({
+      error: 'Error al registrar usuario',
       detail: process.env.NODE_ENV === 'development' ? String(error.message || error) : undefined,
     });
   }

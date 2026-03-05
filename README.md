@@ -21,19 +21,30 @@ El proyecto ahora incluye flujo real de login/registro con API serverless:
 - `POST /api/auth/login`
 - `GET /api/auth/me`
 - `POST /api/auth/logout`
+- `GET /api/test-db` (prueba de conexión Neon)
 
 ### Variables de entorno
 
 Copia `.env.example` y define:
 
-- `POSTGRES_URL`
+- `DATABASE_URL`
 - `JWT_SECRET`
+- `JWT_EXPIRES_IN`
+- `VITE_API_URL`
 
 En Vercel, agrégalas en **Project Settings → Environment Variables**.
 
 ### Esquema SQL
 
-Ejecuta `db/schema.sql` en tu instancia Postgres (o deja que el API cree la tabla `users` automáticamente al primer uso).
+Ejecuta `db/schema.sql` en tu instancia Postgres (tablas `usuarios` y `sesiones`).
+
+### Estructura implementada
+
+- `src/lib/db.js`: conexión Neon + funciones de DB
+- `src/lib/auth.js`: hash, JWT, login/register/logout, middleware `requireAuth`
+- `api/auth/*`: rutas de auth usando Neon
+- `src/services/authService.js`: cliente frontend con Bearer token
+- `src/services/authClient.js`: adaptador para el `AppContext` actual
 
 ### Nota de desarrollo local
 

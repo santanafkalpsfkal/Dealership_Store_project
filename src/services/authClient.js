@@ -1,3 +1,5 @@
+import authService from './authService';
+
 const FALLBACK_USERS_KEY = 'mp_users_v1';
 const FALLBACK_SESSION_KEY = 'mp_session_v1';
 
@@ -27,31 +29,6 @@ function getFallbackSession() {
 
 function clearFallbackSession() {
   localStorage.removeItem(FALLBACK_SESSION_KEY);
-}
-
-async function request(path, options = {}) {
-  try {
-    const res = await fetch(path, {
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
-      ...options,
-    });
-
-    const text = await res.text();
-    const payload = safeParse(text, null);
-
-    if (!payload || typeof payload !== 'object') {
-      return { ok: false, status: res.status, message: 'Respuesta del servidor invalida' };
-    }
-
-    return {
-      ok: res.ok,
-      status: res.status,
-      ...payload,
-    };
-  } catch {
-    return { ok: false, status: 0, message: 'Servidor no disponible' };
-  }
 }
 
 function fallbackRegister({ name, email, password }) {
@@ -105,46 +82,70 @@ function fallbackLogin({ email, password }) {
 }
 
 export async function registerUser(payload) {
-  const apiRes = await request('/api/auth/register', {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
+  try {
+    const apiRes = await authService.register({
+      nombre: payload.name,
+      name: payload.name,
+      email: payload.email,
+      password: payload.password,
+    });
 
-  if (apiRes.ok) return apiRes;
+    if (apiRes?.user) {
+      setFallbackSession({
+        id: apiRes.user.id,
+        name: apiRes.user.nombre || apiRes.user.name,
+        email: apiRes.user.email,
+      });
+    }
 
-  if (apiRes.status === 0 || apiRes.status === 404 || apiRes.status === 405 || apiRes.status >= 500) {
-    return fallbackRegister(payload);
+    return { ok: true, ...apiRes, user: apiRes.user ? { id: apiRes.user.id, name: apiRes.user.nombre || apiRes.user.name, email: apiRes.user.email } : null };
+  } catch (error) {
+    const status = Number(error?.status || 0);
+    if (status === 0 || status === 404 || status === 405 || status >= 500) {
+      return fallbackRegister(payload);
+    }
+    return { ok: false, status, message: error.message || 'No se pudo registrar' };
   }
-
-  return apiRes;
 }
 
 export async function loginUser(payload) {
-  const apiRes = await request('/api/auth/login', {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
+  try {
+    const apiRes = await authService.login(payload);
 
-  if (apiRes.ok) return apiRes;
+    if (apiRes?.user) {
+      setFallbackSession({
+        id: apiRes.user.id,
+        name: apiRes.user.nombre || apiRes.user.name,
+        email: apiRes.user.email,
+      });
+    }
 
-  if (apiRes.status === 0 || apiRes.status === 404 || apiRes.status === 405 || apiRes.status >= 500) {
-    return fallbackLogin(payload);
+    return { ok: true, ...apiRes, user: apiRes.user ? { id: apiRes.user.id, name: apiRes.user.nombre || apiRes.user.name, email: apiRes.user.email } : null };
+  } catch (error) {
+    const status = Number(error?.status || 0);
+    if (status === 0 || status === 404 || status === 405 || status >= 500) {
+      return fallbackLogin(payload);
+    }
+    return { ok: false, status, message: error.message || 'No se pudo iniciar sesion' };
   }
-
-  return apiRes;
 }
 
 export async function logoutUser() {
-  await request('/api/auth/logout', { method: 'POST' });
+  await authService.logout();
   clearFallbackSession();
   return { ok: true };
 }
 
 export async function getCurrentUser() {
-  const apiRes = await request('/api/auth/me', { method: 'GET' });
-
-  if (apiRes.ok && apiRes.user) {
-    return apiRes;
+  try {
+    const user = await authService.getCurrentUser();
+    if (user) {
+      const normalized = { id: user.id, name: user.nombre || user.name, email: user.email };
+      setFallbackSession(normalized);
+      return { ok: true, user: normalized };
+    }
+  } catch {
+    // Ignore and fallback below.
   }
 
   const localUser = getFallbackSession();

@@ -1,45 +1,31 @@
-import { sendJson, requireMethod, getBody, setAuthCookie } from '../_lib/http.js';
-import { signAuthToken } from '../_lib/auth.js';
-import { ensureUsersTable, findUserByEmail, validatePassword } from '../_lib/users.js';
+import { loginUser } from '../../src/lib/auth.js';
 
 export default async function handler(req, res) {
-  if (!requireMethod(req, res, 'POST')) return;
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Metodo no permitido' });
+  }
 
   try {
-    await ensureUsersTable();
-
-    const body = getBody(req);
-    const email = (body?.email || '').trim().toLowerCase();
-    const password = body?.password || '';
+    const { email, password } = req.body || {};
 
     if (!email || !password) {
-      sendJson(res, 400, { ok: false, message: 'Completa todos los campos' });
-      return;
+      return res.status(400).json({ error: 'Email y contrasena requeridos' });
     }
 
-    const user = await findUserByEmail(email);
-    if (!user) {
-      sendJson(res, 401, { ok: false, message: 'Correo o contrasena incorrectos' });
-      return;
-    }
+    const result = await loginUser({ email, password }, req, res);
 
-    const isValid = await validatePassword(password, user.password_hash);
-    if (!isValid) {
-      sendJson(res, 401, { ok: false, message: 'Correo o contrasena incorrectos' });
-      return;
-    }
-
-    const token = signAuthToken(user);
-    setAuthCookie(res, token);
-
-    sendJson(res, 200, {
-      ok: true,
-      user: { id: user.id, name: user.name, email: user.email },
+    return res.status(200).json({
+      message: 'Login exitoso',
+      user: result.user,
+      token: result.token,
     });
   } catch (error) {
-    sendJson(res, 500, {
-      ok: false,
-      message: 'No se pudo iniciar sesion',
+    if (error.message === 'Credenciales invalidas') {
+      return res.status(401).json({ error: error.message });
+    }
+
+    return res.status(500).json({
+      error: 'Error al iniciar sesion',
       detail: process.env.NODE_ENV === 'development' ? String(error.message || error) : undefined,
     });
   }
