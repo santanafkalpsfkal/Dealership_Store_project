@@ -39,6 +39,13 @@ Ejecuta `db/schema.sql` en tu instancia Postgres (o deja que el API cree la tabl
 
 Si `/api` no está disponible (por ejemplo al correr solo `vite`), el frontend usa un fallback local (`localStorage`) para que login/registro sigan funcionando durante desarrollo.
 
+### Panel Admin
+
+- Ruta: `/admin`
+- Acceso: solo el usuario admin definido en variables `VITE_ADMIN_EMAIL` y `VITE_ADMIN_PASSWORD`
+- Funciones: dashboard básico (visitas/usuarios activos) + CRUD de productos
+- Los cambios de productos se reflejan en el módulo `Catálogo` y se guardan en `localStorage`
+
 ---
 
 ## 📁 Estructura

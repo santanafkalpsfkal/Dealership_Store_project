@@ -1,0 +1,203 @@
+.page {
+  padding: 30px 40px 64px;
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+.header h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3vw, 3rem);
+  letter-spacing: 0.03em;
+}
+
+.kicker {
+  color: var(--accent2);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  font-size: 0.78rem;
+}
+
+.sub {
+  color: var(--text2);
+}
+
+.stats {
+  margin-top: 20px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.card {
+  background: linear-gradient(160deg, rgba(249,115,22,0.12), rgba(34,197,94,0.06));
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+}
+
+.card p {
+  color: var(--text2);
+  font-size: 0.82rem;
+}
+
+.card strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 1.5rem;
+  font-family: var(--font-display);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.form, .side, .tableWrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.form {
+  padding: 14px;
+}
+
+.formHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.formHead h2 {
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.fields input, .fields textarea {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 10px;
+  font-family: var(--font-body);
+}
+
+.fields textarea { resize: vertical; }
+.full { grid-column: 1 / -1; }
+
+.checkRow {
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.submitBtn, .ghostBtn, .editBtn, .deleteBtn {
+  border: none;
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-weight: 700;
+}
+
+.submitBtn {
+  background: var(--accent);
+  color: #fff;
+}
+
+.ghostBtn {
+  background: var(--surface3);
+  color: var(--text2);
+}
+
+.side {
+  padding: 14px;
+}
+
+.side h3 {
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+
+.side p {
+  color: var(--text2);
+  margin-bottom: 5px;
+}
+
+.brands {
+  margin-top: 10px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.brandRow {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+  padding: 6px 0;
+}
+
+.tableWrap {
+  margin-top: 16px;
+  padding: 12px;
+  overflow-x: auto;
+}
+
+.tableWrap h2 {
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  font-size: 0.95rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.editBtn {
+  background: var(--green-dim);
+  color: #86efac;
+}
+
+.deleteBtn {
+  background: var(--red-dim);
+  color: #fca5a5;
+}
+
+@media (max-width: 980px) {
+  .page {
+    padding: 16px;
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

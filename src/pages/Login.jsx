@@ -146,6 +146,9 @@ export default function LoginPage() {
         <p className={s.terms} style={{marginTop:'6px'}}>
           24 días siempre · Más garantías
         </p>
+        <p className={s.terms} style={{marginTop:'6px'}}>
+          Admin: usa tu correo configurado en <code>VITE_ADMIN_EMAIL</code>
+        </p>
       </div>
 
     </main>

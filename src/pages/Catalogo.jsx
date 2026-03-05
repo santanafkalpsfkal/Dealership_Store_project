@@ -1,11 +1,11 @@
 import { useState, useMemo } from 'react';
-import { MOTOS, MARCAS, ESTILOS, formatUSD } from '../data/motos';
+import { formatUSD } from '../data/motos';
+import { useApp } from '../context/AppContext';
 import MotoCard from '../components/ui/MotoCard';
 import s from './Catalogo.module.css';
 
-const TIPOS_NAV = ['Moto', 'Ducati', 'Scooter', 'Estilo', 'Sección · Cortina', 'Sam ▾'];
-
 export default function CatalogoPage() {
+  const { products } = useApp();
   const [marcasFilt,  setMarcasFilt]  = useState([]);
   const [estilosFilt, setEstilosFilt] = useState([]);
   const [precioMax,   setPrecioMax]   = useState(30000);
@@ -18,8 +18,11 @@ export default function CatalogoPage() {
   const toggleArr = (arr, set, val) =>
     set(prev => prev.includes(val) ? prev.filter(x => x !== val) : [...prev, val]);
 
+  const marcas = useMemo(() => [...new Set(products.map((m) => m.marca).filter(Boolean))], [products]);
+  const estilos = useMemo(() => [...new Set(products.map((m) => m.estilo).filter(Boolean))], [products]);
+
   const filtered = useMemo(() => {
-    let res = [...MOTOS];
+    let res = [...products];
     if (marcasFilt.length)  res = res.filter(m => marcasFilt.includes(m.marca));
     if (estilosFilt.length) res = res.filter(m => estilosFilt.includes(m.estilo));
     if (conFin)             res = res.filter(m => m.financiamiento);
@@ -29,7 +32,7 @@ export default function CatalogoPage() {
     if (sortBy === 'precio-desc') res.sort((a, b) => b.precio - a.precio);
     if (sortBy === 'rating')      res.sort((a, b) => b.rating - a.rating);
     return res;
-  }, [marcasFilt, estilosFilt, conFin, añoFilt, precioMin, precioMax, sortBy]);
+  }, [products, marcasFilt, estilosFilt, conFin, añoFilt, precioMin, precioMax, sortBy]);
 
   return (
     <main className={s.page}>
@@ -63,7 +66,7 @@ export default function CatalogoPage() {
 
           <div className={s.sideSection}>
             <p className={s.sideTitle}>🏷️ Marca</p>
-            {MARCAS.map(m => (
+            {marcas.map(m => (
               <label key={m} className={s.checkRow}>
                 <input type="checkbox" className={s.check}
                   checked={marcasFilt.includes(m)}
@@ -75,7 +78,7 @@ export default function CatalogoPage() {
 
           <div className={s.sideSection}>
             <p className={s.sideTitle}>🏍️ Estilo</p>
-            {ESTILOS.map(e => (
+            {estilos.map(e => (
               <label key={e} className={s.checkRow}>
                 <input type="checkbox" className={s.check}
                   checked={estilosFilt.includes(e)}

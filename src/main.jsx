@@ -1,7 +1,8 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
+import { useApp } from './context/AppContext';
 
 import Navbar          from './components/layout/Navbar';
 import Footer          from './components/layout/Footer';
@@ -13,6 +14,7 @@ import DetallePage     from './pages/Detalle';
 import FinanciamientoPage from './pages/Financiamiento';
 import ContactoPage    from './pages/Contacto';
 import LoginPage       from './pages/Login';
+import AdminPage       from './pages/Admin';
 
 import './styles/globals.css';
 
@@ -46,6 +48,7 @@ function App() {
           <Route path="/financiamiento"  element={<FinanciamientoPage />} />
           <Route path="/contacto"        element={<ContactoPage />} />
           <Route path="/login"           element={<LoginPage />} />
+          <Route path="/admin"           element={<AdminGuard><AdminPage /></AdminGuard>} />
           <Route path="*"                element={<HomePage />} />
         </Routes>
         <Footer />
@@ -54,6 +57,24 @@ function App() {
       </AppProvider>
     </BrowserRouter>
   );
+}
+
+function AdminGuard({ children }) {
+  const { authLoading, user, isAdmin } = useApp();
+
+  if (authLoading) {
+    return <main style={{ padding: '80px 24px', textAlign: 'center' }}>Cargando...</main>;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
 }
 
 createRoot(document.getElementById('root')).render(

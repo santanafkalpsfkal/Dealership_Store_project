@@ -5,13 +5,14 @@ import s from './Navbar.module.css';
 export default function Navbar() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { user, logout, favs } = useApp();
+  const { user, logout, favs, isAdmin } = useApp();
 
   const links = [
     { label: 'Inicio',          path: '/' },
     { label: 'Catálogo',        path: '/catalogo' },
     { label: 'Financiamiento',  path: '/financiamiento' },
     { label: 'Contacto',        path: '/contacto' },
+    ...(isAdmin ? [{ label: 'Admin', path: '/admin' }] : []),
   ];
 
   return (
@@ -68,6 +69,7 @@ export default function Navbar() {
               <hr className={s.dropDivider}/>
               <button className={s.dropItem} onClick={() => navigate('/catalogo')}>🏍️ Mis Favoritos</button>
               <button className={s.dropItem} onClick={() => navigate('/financiamiento')}>💰 Mi Financiamiento</button>
+              {isAdmin && <button className={s.dropItem} onClick={() => navigate('/admin')}>🛠️ Panel Admin</button>}
               <button className={s.dropItem} onClick={() => { logout(); navigate('/'); }}>🚪 Cerrar Sesión</button>
             </div>
           </div>
