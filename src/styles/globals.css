@@ -50,6 +50,17 @@ button { cursor: pointer; font-family: var(--font-body); }
 img { display: block; max-width: 100%; }
 ul  { list-style: none; }
 
+.appShell {
+  transition: opacity 0.28s ease, transform 0.28s ease, filter 0.28s ease;
+  transform-origin: center top;
+}
+
+.appShell--exiting {
+  opacity: 0;
+  transform: translateY(10px) scale(0.996);
+  filter: blur(1px);
+}
+
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg2); }

@@ -77,8 +77,18 @@
 .loginBtn:hover { background: var(--accent2); transform: translateY(-1px); }
 
 /* User menu */
-.userMenu { position: relative; }
-.userMenu:hover .dropdown { opacity: 1; pointer-events: all; transform: translateY(0); }
+.userMenu {
+  position: relative;
+  /* Bridge area between avatar and dropdown to prevent accidental close on hover */
+  padding-bottom: 10px;
+  margin-bottom: -10px;
+}
+.userMenu:hover .dropdown,
+.userMenu:focus-within .dropdown {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateY(0);
+}
 
 .avatarBtn {
   display: flex; align-items: center; gap: 8px;
@@ -97,7 +107,7 @@
 .chevron  { font-size: 9px; color: var(--text3); }
 
 .dropdown {
-  position: absolute; top: calc(100% + 10px); right: 0;
+  position: absolute; top: calc(100% + 4px); right: 0;
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius); box-shadow: var(--shadow-lg);
   padding: 8px; min-width: 200px;

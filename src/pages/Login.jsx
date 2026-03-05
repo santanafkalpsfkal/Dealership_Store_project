@@ -6,14 +6,12 @@ import s from './Login.module.css';
 export default function LoginPage() {
   const navigate = useNavigate();
   const { login, register, authError, setAuthError } = useApp();
-  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@motorplace.com';
-  const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'Admin#2026';
+  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@concesionario.com';
+  const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123';
   const [mode,  setMode]  = useState('login');
   const [form,  setForm]  = useState({ name: '', email: '', password: '', confirm: '' });
   const [show,  setShow]  = useState(false);
   const [submitting, setSubmitting] = useState(false);
-
-  const isAdminEmail = (email) => (email || '').trim().toLowerCase() === adminEmail.trim().toLowerCase();
 
   const handleChange = e => {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }));
@@ -26,8 +24,11 @@ export default function LoginPage() {
     setSubmitting(true);
 
     if (mode === 'login') {
-      if (await login(form.email, form.password)) {
-        navigate(isAdminEmail(form.email) ? '/admin' : '/');
+      const result = await login(form.email, form.password);
+      if (result.ok) {
+        const isAdminUser = String(result.user?.rol || '').toLowerCase() === 'admin'
+          || String(result.user?.email || '').toLowerCase() === adminEmail.trim().toLowerCase();
+        navigate(isAdminUser ? '/admin' : '/');
       }
     } else {
       if (form.password !== form.confirm) {
@@ -35,7 +36,8 @@ export default function LoginPage() {
         setSubmitting(false);
         return;
       }
-      if (await register(form.name, form.email, form.password)) navigate('/');
+      const result = await register(form.name, form.email, form.password);
+      if (result.ok) navigate('/');
     }
 
     setSubmitting(false);

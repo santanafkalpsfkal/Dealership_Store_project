@@ -2,6 +2,22 @@ import authService from './authService';
 
 const FALLBACK_USERS_KEY = 'mp_users_v1';
 const FALLBACK_SESSION_KEY = 'mp_session_v1';
+const DEFAULT_FALLBACK_USERS = [
+  {
+    id: 1,
+    name: 'Administrador',
+    email: 'admin@concesionario.com',
+    password: 'admin123',
+    rol: 'admin',
+  },
+  {
+    id: 3,
+    name: 'Juan Perez',
+    email: 'juan.perez@email.com',
+    password: 'juan123',
+    rol: 'usuario',
+  },
+];
 
 function safeParse(value, fallback) {
   try {
@@ -12,7 +28,11 @@ function safeParse(value, fallback) {
 }
 
 function getFallbackUsers() {
-  return safeParse(localStorage.getItem(FALLBACK_USERS_KEY), []);
+  const current = safeParse(localStorage.getItem(FALLBACK_USERS_KEY), []);
+  if (Array.isArray(current) && current.length) return current;
+
+  localStorage.setItem(FALLBACK_USERS_KEY, JSON.stringify(DEFAULT_FALLBACK_USERS));
+  return [...DEFAULT_FALLBACK_USERS];
 }
 
 function setFallbackUsers(users) {
@@ -58,13 +78,14 @@ function fallbackRegister({ name, email, password }) {
     name: cleanName,
     email: normalizedEmail,
     password,
+    rol: 'usuario',
     createdAt: new Date().toISOString(),
   };
 
   setFallbackUsers([...users, user]);
-  setFallbackSession({ id: user.id, name: user.name, email: user.email });
+  setFallbackSession({ id: user.id, name: user.name, email: user.email, rol: user.rol });
 
-  return { ok: true, user: { id: user.id, name: user.name, email: user.email } };
+  return { ok: true, user: { id: user.id, name: user.name, email: user.email, rol: user.rol } };
 }
 
 function fallbackLogin({ email, password }) {
@@ -76,7 +97,7 @@ function fallbackLogin({ email, password }) {
     return { ok: false, message: 'Correo o contrasena incorrectos' };
   }
 
-  const user = { id: found.id, name: found.name, email: found.email };
+  const user = { id: found.id, name: found.name, email: found.email, rol: found.rol || 'usuario' };
   setFallbackSession(user);
   return { ok: true, user };
 }
@@ -95,10 +116,11 @@ export async function registerUser(payload) {
         id: apiRes.user.id,
         name: apiRes.user.nombre || apiRes.user.name,
         email: apiRes.user.email,
+        rol: apiRes.user.rol || 'usuario',
       });
     }
 
-    return { ok: true, ...apiRes, user: apiRes.user ? { id: apiRes.user.id, name: apiRes.user.nombre || apiRes.user.name, email: apiRes.user.email } : null };
+    return { ok: true, ...apiRes, user: apiRes.user ? { id: apiRes.user.id, name: apiRes.user.nombre || apiRes.user.name, email: apiRes.user.email, rol: apiRes.user.rol || 'usuario' } : null };
   } catch (error) {
     const status = Number(error?.status || 0);
     if (status === 0 || status === 404 || status === 405 || status >= 500) {
@@ -117,10 +139,11 @@ export async function loginUser(payload) {
         id: apiRes.user.id,
         name: apiRes.user.nombre || apiRes.user.name,
         email: apiRes.user.email,
+        rol: apiRes.user.rol || 'usuario',
       });
     }
 
-    return { ok: true, ...apiRes, user: apiRes.user ? { id: apiRes.user.id, name: apiRes.user.nombre || apiRes.user.name, email: apiRes.user.email } : null };
+    return { ok: true, ...apiRes, user: apiRes.user ? { id: apiRes.user.id, name: apiRes.user.nombre || apiRes.user.name, email: apiRes.user.email, rol: apiRes.user.rol || 'usuario' } : null };
   } catch (error) {
     const status = Number(error?.status || 0);
     if (status === 0 || status === 404 || status === 405 || status >= 500) {
@@ -141,6 +164,7 @@ export async function getCurrentUser() {
     const user = await authService.getCurrentUser();
     if (user) {
       const normalized = { id: user.id, name: user.nombre || user.name, email: user.email };
+      normalized.rol = user.rol || 'usuario';
       setFallbackSession(normalized);
       return { ok: true, user: normalized };
     }

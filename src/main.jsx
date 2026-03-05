@@ -41,23 +41,34 @@ function App() {
   return (
     <BrowserRouter>
       <AppProvider>
-        <ScrollToTopOnRoute />
-        <Navbar />
-        <Routes>
-          <Route path="/"                element={<HomePage />} />
-          <Route path="/catalogo"        element={<CatalogoPage />} />
-          <Route path="/detalle"         element={<DetallePage />} />
-          <Route path="/financiamiento"  element={<FinanciamientoPage />} />
-          <Route path="/contacto"        element={<ContactoPage />} />
-          <Route path="/login"           element={<LoginPage />} />
-          <Route path="/admin"           element={<AdminGuard><AdminPage /></AdminGuard>} />
-          <Route path="*"                element={<HomePage />} />
-        </Routes>
-        <Footer />
-        <Toast />
-        <WaFloat />
+        <AppShell />
       </AppProvider>
     </BrowserRouter>
+  );
+}
+
+function AppShell() {
+  const { loggingIn, loggingOut } = useApp();
+  const isTransitioning = loggingIn || loggingOut;
+
+  return (
+    <div className={`appShell ${isTransitioning ? 'appShell--exiting' : ''}`}>
+      <ScrollToTopOnRoute />
+      <Navbar />
+      <Routes>
+        <Route path="/"                element={<HomePage />} />
+        <Route path="/catalogo"        element={<CatalogoPage />} />
+        <Route path="/detalle"         element={<DetallePage />} />
+        <Route path="/financiamiento"  element={<FinanciamientoPage />} />
+        <Route path="/contacto"        element={<ContactoPage />} />
+        <Route path="/login"           element={<LoginPage />} />
+        <Route path="/admin"           element={<AdminGuard><AdminPage /></AdminGuard>} />
+        <Route path="*"                element={<HomePage />} />
+      </Routes>
+      <Footer />
+      <Toast />
+      <WaFloat />
+    </div>
   );
 }
 

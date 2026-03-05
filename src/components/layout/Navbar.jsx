@@ -70,7 +70,7 @@ export default function Navbar() {
               <button className={s.dropItem} onClick={() => navigate('/catalogo')}>🏍️ Mis Favoritos</button>
               <button className={s.dropItem} onClick={() => navigate('/financiamiento')}>💰 Mi Financiamiento</button>
               {isAdmin && <button className={s.dropItem} onClick={() => navigate('/admin')}>🛠️ Panel Admin</button>}
-              <button className={s.dropItem} onClick={() => { logout(); navigate('/'); }}>🚪 Cerrar Sesión</button>
+              <button className={s.dropItem} onClick={async () => { await logout(); navigate('/'); }}>🚪 Cerrar Sesión</button>
             </div>
           </div>
         ) : (

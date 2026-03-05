@@ -67,13 +67,15 @@ function normalizeProductPayload(input = {}) {
 }
 
 export function AppProvider({ children }) {
-  const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || 'admin@motorplace.com').trim().toLowerCase();
-  const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'Admin#2026';
+  const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || 'admin@concesionario.com').trim().toLowerCase();
+  const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123';
 
   // ── Auth ──────────────────────────────────────────────────
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [authError, setAuthError] = useState('');
+  const [loggingIn, setLoggingIn] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   // ── Productos (CRUD Admin) ────────────────────────────────
   const [products, setProducts] = useState(getInitialProducts);
@@ -87,8 +89,26 @@ export function AppProvider({ children }) {
     registeredUsers: 0,
   });
 
-  const isAdmin = Boolean(user?.email && user.email.toLowerCase() === adminEmail);
+  const isAdmin = Boolean(
+    (user?.rol && String(user.rol).toLowerCase() === 'admin')
+      || (user?.email && user.email.toLowerCase() === adminEmail)
+  );
   const notifTimerRef = useRef(null);
+
+  // ── Notificaciones ────────────────────────────────────────
+  const [notif, setNotif] = useState({ show: false, text: '', type: 'info' });
+  const showNotif = useCallback((text, type = 'success') => {
+    if (notifTimerRef.current) clearTimeout(notifTimerRef.current);
+    setNotif({ show: true, text, type });
+    notifTimerRef.current = setTimeout(() => {
+      setNotif((n) => ({ ...n, show: false }));
+      notifTimerRef.current = null;
+    }, 2800);
+  }, []);
+
+  useEffect(() => () => {
+    if (notifTimerRef.current) clearTimeout(notifTimerRef.current);
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -176,56 +196,69 @@ export function AppProvider({ children }) {
 
     const normalizedEmail = (email || '').trim().toLowerCase();
     if (normalizedEmail === adminEmail && password === adminPassword) {
-      const adminUser = { id: 'admin', name: 'Administrador', email: adminEmail };
+      const adminUser = { id: 'admin', name: 'Administrador', email: adminEmail, rol: 'admin' };
+      setLoggingIn(true);
+      await new Promise((resolve) => setTimeout(resolve, 240));
       if (typeof window !== 'undefined') {
         localStorage.setItem('mp_session_v1', JSON.stringify(adminUser));
       }
       setUser(adminUser);
       setAuthError('');
-      return true;
+      showNotif(`Bienvenido, ${adminUser.name}`, 'success');
+      setLoggingIn(false);
+      return { ok: true, user: adminUser };
     }
 
     const res = await loginUser({ email, password });
     if (!res.ok) {
       setAuthError(res.message || 'No se pudo iniciar sesión');
-      return false;
+      return { ok: false };
     }
 
+    setLoggingIn(true);
+    await new Promise((resolve) => setTimeout(resolve, 240));
     setUser(res.user);
     setAuthError('');
-    return true;
-  }, [adminEmail, adminPassword]);
+    showNotif(`Inicio de sesion exitoso: ${res.user.name || res.user.email}`, 'success');
+    setLoggingIn(false);
+    return { ok: true, user: res.user };
+  }, [adminEmail, adminPassword, showNotif]);
 
   const register = useCallback(async (name, email, password) => {
     if (!name || !email || !password) {
       setAuthError('Completa todos los campos');
-      return false;
+      return { ok: false };
     }
     if (password.length < 6) {
       setAuthError('Minimo 6 caracteres');
-      return false;
+      return { ok: false };
     }
 
     if ((email || '').trim().toLowerCase() === adminEmail) {
       setAuthError('Ese correo esta reservado para el administrador');
-      return false;
+      return { ok: false };
     }
 
     const res = await registerUser({ name, email, password });
     if (!res.ok) {
       setAuthError(res.message || 'No se pudo crear la cuenta');
-      return false;
+      return { ok: false };
     }
 
     setUser(res.user);
     setAuthError('');
-    return true;
+    return { ok: true, user: res.user };
   }, [adminEmail]);
 
   const logout = useCallback(async () => {
+    setLoggingOut(true);
+    showNotif('Cerrando sesion...', 'info');
+    await new Promise((resolve) => setTimeout(resolve, 280));
     await logoutUser();
     setUser(null);
-  }, []);
+    showNotif('Sesion cerrada correctamente', 'success');
+    setLoggingOut(false);
+  }, [showNotif]);
 
   const addProduct = useCallback((input) => {
     const normalized = normalizeProductPayload(input);
@@ -298,24 +331,9 @@ export function AppProvider({ children }) {
     motoId: null,
   });
 
-  // ── Notificaciones ────────────────────────────────────────
-  const [notif, setNotif] = useState({ show: false, text: '', type: 'info' });
-  const showNotif = useCallback((text, type = 'success') => {
-    if (notifTimerRef.current) clearTimeout(notifTimerRef.current);
-    setNotif({ show: true, text, type });
-    notifTimerRef.current = setTimeout(() => {
-      setNotif((n) => ({ ...n, show: false }));
-      notifTimerRef.current = null;
-    }, 2800);
-  }, []);
-
-  useEffect(() => () => {
-    if (notifTimerRef.current) clearTimeout(notifTimerRef.current);
-  }, []);
-
   return (
     <AppContext.Provider value={{
-      user, authLoading, isAdmin, adminEmail, login, register, logout, authError, setAuthError,
+      user, authLoading, loggingIn, loggingOut, isAdmin, adminEmail, login, register, logout, authError, setAuthError,
       products, addProduct, updateProduct, deleteProduct, dashboardStats,
       selectedMoto, setSelectedMoto,
       favs, toggleFav,
