@@ -6,10 +6,14 @@ import s from './Login.module.css';
 export default function LoginPage() {
   const navigate = useNavigate();
   const { login, register, authError, setAuthError } = useApp();
+  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@motorplace.com';
+  const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'Admin#2026';
   const [mode,  setMode]  = useState('login');
   const [form,  setForm]  = useState({ name: '', email: '', password: '', confirm: '' });
   const [show,  setShow]  = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  const isAdminEmail = (email) => (email || '').trim().toLowerCase() === adminEmail.trim().toLowerCase();
 
   const handleChange = e => {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }));
@@ -22,7 +26,9 @@ export default function LoginPage() {
     setSubmitting(true);
 
     if (mode === 'login') {
-      if (await login(form.email, form.password)) navigate('/');
+      if (await login(form.email, form.password)) {
+        navigate(isAdminEmail(form.email) ? '/admin' : '/');
+      }
     } else {
       if (form.password !== form.confirm) {
         setAuthError('Las contraseñas no coinciden');
@@ -36,6 +42,21 @@ export default function LoginPage() {
   };
 
   const switchMode = m => { setMode(m); setForm({ name:'', email:'', password:'', confirm:'' }); setAuthError(''); };
+  const fillAdminDemo = () => {
+    setMode('login');
+    setAuthError('');
+    setForm({ name: '', email: adminEmail, password: adminPassword, confirm: '' });
+  };
+
+  const loginAdminDemo = async () => {
+    if (submitting) return;
+    setMode('login');
+    setAuthError('');
+    setSubmitting(true);
+    const ok = await login(adminEmail, adminPassword);
+    setSubmitting(false);
+    if (ok) navigate('/admin');
+  };
 
   return (
     <main className={s.page}>
@@ -146,8 +167,14 @@ export default function LoginPage() {
         <p className={s.terms} style={{marginTop:'6px'}}>
           24 días siempre · Más garantías
         </p>
+        <button type="button" className={s.adminDemoBtn} onClick={fillAdminDemo}>
+          Usar acceso admin demo
+        </button>
+        <button type="button" className={s.adminDemoBtn} onClick={loginAdminDemo} disabled={submitting}>
+          Entrar directo al panel admin
+        </button>
         <p className={s.terms} style={{marginTop:'6px'}}>
-          Admin: usa tu correo configurado en <code>VITE_ADMIN_EMAIL</code>
+          Admin demo: <code>{adminEmail}</code> / <code>{adminPassword}</code>
         </p>
       </div>
 

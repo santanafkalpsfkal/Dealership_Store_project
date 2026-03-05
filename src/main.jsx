@@ -1,6 +1,6 @@
-import { StrictMode } from 'react';
+import { StrictMode, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import { useApp } from './context/AppContext';
 
@@ -15,6 +15,7 @@ import FinanciamientoPage from './pages/Financiamiento';
 import ContactoPage    from './pages/Contacto';
 import LoginPage       from './pages/Login';
 import AdminPage       from './pages/Admin';
+import AdminEntrySkeleton from './components/ui/AdminEntrySkeleton';
 
 import './styles/globals.css';
 
@@ -40,6 +41,7 @@ function App() {
   return (
     <BrowserRouter>
       <AppProvider>
+        <ScrollToTopOnRoute />
         <Navbar />
         <Routes>
           <Route path="/"                element={<HomePage />} />
@@ -63,7 +65,7 @@ function AdminGuard({ children }) {
   const { authLoading, user, isAdmin } = useApp();
 
   if (authLoading) {
-    return <main style={{ padding: '80px 24px', textAlign: 'center' }}>Cargando...</main>;
+    return <AdminEntrySkeleton />;
   }
 
   if (!user) {
@@ -75,6 +77,16 @@ function AdminGuard({ children }) {
   }
 
   return children;
+}
+
+function ScrollToTopOnRoute() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [pathname]);
+
+  return null;
 }
 
 createRoot(document.getElementById('root')).render(

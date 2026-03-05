@@ -7,6 +7,8 @@ export default function Toast() {
     <div className={`${s.toast} ${notif.show ? s.show : ''} ${s[notif.type] || ''}`}>
       {notif.type === 'success' && '✅ '}
       {notif.type === 'info'    && 'ℹ️ '}
+      {notif.type === 'warning' && '⚠️ '}
+      {notif.type === 'error'   && '⛔ '}
       {notif.text}
     </div>
   );

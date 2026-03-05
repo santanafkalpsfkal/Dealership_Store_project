@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { MOTOS } from '../data/motos';
 import {
   loginUser,
@@ -33,6 +33,39 @@ function createVisitorId() {
   return `v_${Date.now()}_${Math.random().toString(16).slice(2, 10)}`;
 }
 
+function normalizeProductPayload(input = {}) {
+  const year = Number(input.ano ?? input.año);
+  const reviews = Number(input.resenas ?? input.reseñas);
+  const image = (input.img || '').trim();
+
+  return {
+    name: (input.name || '').trim(),
+    marca: (input.marca || '').trim(),
+    tipo: (input.tipo || 'Moto').trim(),
+    estilo: (input.estilo || '').trim(),
+    precio: Number(input.precio) || 0,
+    cuota: Number(input.cuota) || 0,
+    año: Number.isFinite(year) && year > 0 ? year : new Date().getFullYear(),
+    km: Number(input.km) || 0,
+    color: (input.color || 'Negro').trim(),
+    financiamiento: Boolean(input.financiamiento),
+    estado: (input.estado || 'Nuevo').trim(),
+    rating: Number(input.rating) || 4.5,
+    reseñas: Number.isFinite(reviews) && reviews >= 0 ? reviews : 0,
+    img: image,
+    imgs: image ? [image] : [],
+    descripcion: (input.descripcion || 'Moto agregada por el panel admin.').trim(),
+    specs: {
+      motor: (input.motor || 'N/D').trim(),
+      potencia: (input.potencia || 'N/D').trim(),
+      par: (input.par || 'N/D').trim(),
+      peso: (input.peso || 'N/D').trim(),
+      velocidad: (input.velocidad || 'N/D').trim(),
+    },
+    badge: input.badge?.trim() || null,
+  };
+}
+
 export function AppProvider({ children }) {
   const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || 'admin@motorplace.com').trim().toLowerCase();
   const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'Admin#2026';
@@ -55,6 +88,7 @@ export function AppProvider({ children }) {
   });
 
   const isAdmin = Boolean(user?.email && user.email.toLowerCase() === adminEmail);
+  const notifTimerRef = useRef(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -194,77 +228,57 @@ export function AppProvider({ children }) {
   }, []);
 
   const addProduct = useCallback((input) => {
-    const image = (input.img || '').trim();
+    const normalized = normalizeProductPayload(input);
+    if (!normalized.name || !normalized.marca || !normalized.estilo || !normalized.img) {
+      return { ok: false, message: 'Completa nombre, marca, estilo e imagen' };
+    }
 
-    const next = {
-      name: input.name.trim(),
-      marca: input.marca.trim(),
-      tipo: input.tipo.trim() || 'Moto',
-      estilo: input.estilo.trim(),
-      precio: Number(input.precio) || 0,
-      cuota: Number(input.cuota) || 0,
-      año: Number(input.año) || new Date().getFullYear(),
-      km: Number(input.km) || 0,
-      color: input.color.trim() || 'Negro',
-      financiamiento: Boolean(input.financiamiento),
-      estado: input.estado.trim() || 'Nuevo',
-      rating: Number(input.rating) || 4.5,
-      reseñas: Number(input.reseñas) || 0,
-      img: image,
-      imgs: image ? [image] : [],
-      descripcion: input.descripcion.trim() || 'Moto agregada por el panel admin.',
-      specs: {
-        motor: input.motor?.trim() || 'N/D',
-        potencia: input.potencia?.trim() || 'N/D',
-        par: input.par?.trim() || 'N/D',
-        peso: input.peso?.trim() || 'N/D',
-        velocidad: input.velocidad?.trim() || 'N/D',
-      },
-      badge: input.badge?.trim() || null,
-    };
-
+    let created = null;
     setProducts((prev) => {
       const maxId = prev.reduce((acc, p) => Math.max(acc, Number(p.id) || 0), 0);
-      return [{ id: maxId + 1, ...next }, ...prev];
+      created = { id: maxId + 1, ...normalized };
+      return [created, ...prev];
     });
+
+    return { ok: true, product: created };
   }, []);
 
   const updateProduct = useCallback((id, input) => {
+    const normalized = normalizeProductPayload(input);
+    if (!normalized.name || !normalized.marca || !normalized.estilo || !normalized.img) {
+      return { ok: false, message: 'Completa nombre, marca, estilo e imagen' };
+    }
+
+    let updated = null;
     setProducts((prev) => prev.map((p) => {
       if (p.id !== id) return p;
-      const image = (input.img || '').trim();
-      return {
+      updated = {
         ...p,
-        name: input.name.trim(),
-        marca: input.marca.trim(),
-        tipo: input.tipo.trim(),
-        estilo: input.estilo.trim(),
-        precio: Number(input.precio) || 0,
-        cuota: Number(input.cuota) || 0,
-        año: Number(input.año) || p.año,
-        km: Number(input.km) || 0,
-        color: input.color.trim(),
-        financiamiento: Boolean(input.financiamiento),
-        estado: input.estado.trim(),
-        rating: Number(input.rating) || 0,
-        reseñas: Number(input.reseñas) || 0,
-        img: image,
-        imgs: image ? [image] : p.imgs,
-        descripcion: input.descripcion.trim(),
-        specs: {
-          motor: input.motor?.trim() || 'N/D',
-          potencia: input.potencia?.trim() || 'N/D',
-          par: input.par?.trim() || 'N/D',
-          peso: input.peso?.trim() || 'N/D',
-          velocidad: input.velocidad?.trim() || 'N/D',
-        },
-        badge: input.badge?.trim() || null,
+        ...normalized,
+        imgs: normalized.img ? [normalized.img] : p.imgs,
       };
+      return updated;
     }));
+
+    if (!updated) return { ok: false, message: 'No se encontro el producto' };
+    return { ok: true, product: updated };
   }, []);
 
   const deleteProduct = useCallback((id) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
+    let deleted = null;
+    setProducts((prev) => {
+      const next = prev.filter((p) => {
+        if (p.id === id) {
+          deleted = p;
+          return false;
+        }
+        return true;
+      });
+      return next;
+    });
+
+    if (!deleted) return { ok: false, message: 'No se encontro el producto' };
+    return { ok: true, product: deleted };
   }, []);
 
   // ── Moto seleccionada ─────────────────────────────────────
@@ -287,8 +301,16 @@ export function AppProvider({ children }) {
   // ── Notificaciones ────────────────────────────────────────
   const [notif, setNotif] = useState({ show: false, text: '', type: 'info' });
   const showNotif = useCallback((text, type = 'success') => {
+    if (notifTimerRef.current) clearTimeout(notifTimerRef.current);
     setNotif({ show: true, text, type });
-    setTimeout(() => setNotif(n => ({ ...n, show: false })), 2800);
+    notifTimerRef.current = setTimeout(() => {
+      setNotif((n) => ({ ...n, show: false }));
+      notifTimerRef.current = null;
+    }, 2800);
+  }, []);
+
+  useEffect(() => () => {
+    if (notifTimerRef.current) clearTimeout(notifTimerRef.current);
   }, []);
 
   return (

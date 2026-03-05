@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { formatUSD } from '../data/motos';
 import s from './Admin.module.css';
@@ -10,13 +10,13 @@ const EMPTY_FORM = {
   estilo: '',
   precio: '',
   cuota: '',
-  año: '',
+  ano: '',
   km: '',
   color: 'Negro',
   financiamiento: true,
   estado: 'Nuevo',
   rating: '4.5',
-  reseñas: '0',
+  resenas: '0',
   img: '',
   descripcion: '',
   motor: '',
@@ -40,6 +40,7 @@ export default function AdminPage() {
 
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingId, setEditingId] = useState(null);
+  const formRef = useRef(null);
 
   const topBrands = useMemo(() => {
     const map = products.reduce((acc, p) => {
@@ -69,13 +70,13 @@ export default function AdminPage() {
       estilo: product.estilo || '',
       precio: String(product.precio ?? ''),
       cuota: String(product.cuota ?? ''),
-      año: String(product.año ?? ''),
+      ano: String(product.año ?? ''),
       km: String(product.km ?? ''),
       color: product.color || '',
       financiamiento: Boolean(product.financiamiento),
       estado: product.estado || 'Nuevo',
       rating: String(product.rating ?? ''),
-      reseñas: String(product.reseñas ?? ''),
+      resenas: String(product.reseñas ?? ''),
       img: product.img || '',
       descripcion: product.descripcion || '',
       motor: product.specs?.motor || '',
@@ -84,6 +85,11 @@ export default function AdminPage() {
       peso: product.specs?.peso || '',
       velocidad: product.specs?.velocidad || '',
       badge: product.badge || '',
+    });
+    showNotif(`Editando: ${product.name}`, 'info');
+
+    requestAnimationFrame(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   };
 
@@ -95,17 +101,20 @@ export default function AdminPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!form.name.trim() || !form.marca.trim() || !form.estilo.trim() || !form.img.trim()) {
-      showNotif('Completa nombre, marca, estilo e imagen', 'info');
-      return;
-    }
-
     if (editingId) {
-      updateProduct(editingId, form);
-      showNotif('Producto actualizado', 'success');
+      const result = updateProduct(editingId, form);
+      if (!result.ok) {
+        showNotif(result.message, 'error');
+        return;
+      }
+      showNotif(`Producto actualizado: ${result.product.name}`, 'success');
     } else {
-      addProduct(form);
-      showNotif('Producto agregado al catalogo', 'success');
+      const result = addProduct(form);
+      if (!result.ok) {
+        showNotif(result.message, 'error');
+        return;
+      }
+      showNotif(`Producto agregado: ${result.product.name}`, 'success');
     }
 
     resetForm();
@@ -113,9 +122,13 @@ export default function AdminPage() {
 
   const handleDelete = (id) => {
     if (!window.confirm('Seguro que deseas eliminar este producto?')) return;
-    deleteProduct(id);
+    const result = deleteProduct(id);
+    if (!result.ok) {
+      showNotif(result.message, 'error');
+      return;
+    }
     if (editingId === id) resetForm();
-    showNotif('Producto eliminado', 'info');
+    showNotif(`Producto eliminado: ${result.product.name}`, 'warning');
   };
 
   return (
@@ -136,7 +149,7 @@ export default function AdminPage() {
       </section>
 
       <section className={s.grid}>
-        <form className={s.form} onSubmit={handleSubmit}>
+        <form className={s.form} onSubmit={handleSubmit} ref={formRef}>
           <div className={s.formHead}>
             <h2>{editingId ? 'Editar producto' : 'Nuevo producto'}</h2>
             {editingId && <button type="button" onClick={resetForm} className={s.ghostBtn}>Cancelar</button>}
@@ -149,12 +162,12 @@ export default function AdminPage() {
             <input name="tipo" value={form.tipo} onChange={handleChange} placeholder="Tipo" />
             <input name="precio" type="number" value={form.precio} onChange={handleChange} placeholder="Precio" />
             <input name="cuota" type="number" value={form.cuota} onChange={handleChange} placeholder="Cuota" />
-            <input name="año" type="number" value={form.año} onChange={handleChange} placeholder="Ano" />
+            <input name="ano" type="number" value={form.ano} onChange={handleChange} placeholder="Ano" />
             <input name="km" type="number" value={form.km} onChange={handleChange} placeholder="KM" />
             <input name="color" value={form.color} onChange={handleChange} placeholder="Color" />
             <input name="estado" value={form.estado} onChange={handleChange} placeholder="Estado" />
             <input name="rating" type="number" step="0.1" value={form.rating} onChange={handleChange} placeholder="Rating" />
-            <input name="reseñas" type="number" value={form.reseñas} onChange={handleChange} placeholder="Resenas" />
+            <input name="resenas" type="number" value={form.resenas} onChange={handleChange} placeholder="Resenas" />
             <input className={s.full} name="img" value={form.img} onChange={handleChange} placeholder="URL imagen" />
             <textarea className={s.full} name="descripcion" value={form.descripcion} onChange={handleChange} rows={3} placeholder="Descripcion" />
             <input name="motor" value={form.motor} onChange={handleChange} placeholder="Motor" />
@@ -209,8 +222,8 @@ export default function AdminPage() {
                 <td>{formatUSD(Number(p.precio) || 0)}</td>
                 <td>{p.año}</td>
                 <td className={s.actions}>
-                  <button onClick={() => handleEdit(p)} className={s.editBtn}>Editar</button>
-                  <button onClick={() => handleDelete(p.id)} className={s.deleteBtn}>Eliminar</button>
+                  <button type="button" onClick={() => handleEdit(p)} className={s.editBtn}>Editar</button>
+                  <button type="button" onClick={() => handleDelete(p.id)} className={s.deleteBtn}>Eliminar</button>
                 </td>
               </tr>
             ))}
