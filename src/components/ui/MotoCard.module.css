@@ -1,0 +1,93 @@
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s;
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg), var(--shadow-glow);
+  border-color: var(--border2);
+}
+
+/* Image */
+.imgWrap {
+  position: relative;
+  aspect-ratio: 16/10;
+  overflow: hidden;
+  background: var(--surface2);
+}
+.img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+.card:hover .img { transform: scale(1.05); }
+
+.imgOverlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.7) 100%);
+  pointer-events: none;
+}
+
+.badge {
+  position: absolute; top: 12px; left: 12px;
+  color: #fff; font-size: 10px; font-weight: 800;
+  padding: 3px 10px; border-radius: 4px;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.usadoBadge {
+  position: absolute; top: 12px; right: 44px;
+  background: var(--gold); color: #111;
+  font-size: 10px; font-weight: 800;
+  padding: 3px 10px; border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.favBtn {
+  position: absolute; top: 10px; right: 10px;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text2); font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; backdrop-filter: blur(4px);
+}
+.favBtn:hover   { background: rgba(249,115,22,0.2); color: var(--accent); border-color: var(--accent); }
+.favBtn.favActive { color: var(--accent); background: rgba(249,115,22,0.15); border-color: var(--accent); }
+
+/* Info */
+.info { padding: 16px; }
+.marca { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+.name  { font-family: var(--font-display); font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 6px; letter-spacing: 0.02em; }
+.price { font-family: var(--font-display); font-size: 26px; font-weight: 900; color: var(--accent); margin-bottom: 6px; }
+
+.cuota { font-size: 12px; color: var(--text2); margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
+.cuotaIcon { font-size: 12px; }
+
+.tags  { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.tag   {
+  font-size: 10px; font-weight: 700;
+  padding: 3px 10px; border-radius: 4px;
+  background: var(--surface2); color: var(--text2);
+  border: 1px solid var(--border);
+}
+.tagGreen  { background: var(--green-dim); color: var(--green); border-color: rgba(34,197,94,0.2); }
+.tagOrange { background: var(--accent-dim); color: var(--accent); border-color: rgba(249,115,22,0.2); }
+
+.cta {
+  width: 100%; padding: 9px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); color: var(--text2);
+  font-size: 12px; font-weight: 700; letter-spacing: 0.05em;
+  text-transform: uppercase; transition: all 0.15s;
+}
+.cta:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* Compact variant */
+.compact .info { padding: 12px; }
+.compact .name  { font-size: 16px; }
+.compact .price { font-size: 20px; }
+.compact .cta   { display: none; }

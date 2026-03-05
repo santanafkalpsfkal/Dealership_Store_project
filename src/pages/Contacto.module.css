@@ -1,0 +1,164 @@
+.page { padding: 32px 40px 64px; }
+
+.layout {
+  display: grid; grid-template-columns: 1fr 320px;
+  gap: 24px; max-width: 1060px; margin: 0 auto;
+}
+
+/* ── Chat Box ── */
+.chatBox {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-xl); overflow: hidden;
+  display: flex; flex-direction: column;
+  height: calc(100vh - 180px); min-height: 500px;
+}
+
+/* Advisor Header */
+.advisorHeader {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+.advisorImgWrap { position: relative; flex-shrink: 0; }
+.advisorImg {
+  width: 48px; height: 48px; border-radius: 50%;
+  object-fit: cover; background: var(--surface3);
+}
+.onlineDot {
+  position: absolute; bottom: 2px; right: 2px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--green); border: 2px solid var(--surface2);
+}
+.advisorInfo { flex: 1; }
+.advisorName { font-size: 15px; color: var(--text); margin-bottom: 2px; }
+.advisorRole { color: var(--accent); }
+.advisorId   { font-size: 11px; color: var(--text3); }
+.advisorActions { display: flex; gap: 6px; }
+.actionBtn {
+  width: 32px; height: 32px; border-radius: var(--radius-sm);
+  background: var(--surface3); border: 1px solid var(--border);
+  font-size: 14px; cursor: pointer; transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.actionBtn:hover { border-color: var(--border2); }
+
+/* Messages */
+.messages {
+  flex: 1; overflow-y: auto; padding: 20px;
+  display: flex; flex-direction: column; gap: 14px;
+  background: var(--bg2);
+}
+.msgRow { display: flex; align-items: flex-end; gap: 10px; }
+.msgRowUser { flex-direction: row-reverse; }
+
+.msgAvatar { width: 30px; height: 30px; flex-shrink: 0; }
+.msgAvatarImg { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; background: var(--surface3); }
+
+.bubble { max-width: 68%; padding: 11px 14px; border-radius: 16px; }
+.bubbleAdvisor {
+  background: var(--surface); border: 1px solid var(--border);
+  border-bottom-left-radius: 4px;
+}
+.bubbleUser {
+  background: var(--accent-dim); border: 1px solid rgba(249,115,22,0.25);
+  border-bottom-right-radius: 4px;
+}
+.bubble p  { font-size: 14px; line-height: 1.5; color: var(--text); }
+.msgTime   { font-size: 10px; color: var(--text3); margin-top: 4px; display: block; text-align: right; }
+
+/* Typing */
+.typingBubble { display: flex; align-items: center; gap: 4px; padding: 14px; }
+.dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--text3);
+  animation: typingDot 1.2s infinite ease-in-out;
+}
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingDot { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+
+/* Quick replies */
+.quickReplies {
+  display: flex; gap: 8px; padding: 10px 16px;
+  overflow-x: auto; border-top: 1px solid var(--border);
+  scrollbar-width: none; background: var(--surface);
+}
+.quickReplies::-webkit-scrollbar { display: none; }
+.quickBtn {
+  white-space: nowrap; padding: 6px 14px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 20px; font-size: 12px; font-weight: 600; color: var(--text2);
+  cursor: pointer; transition: all 0.15s;
+}
+.quickBtn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+/* Input */
+.inputRow {
+  display: flex; gap: 8px; padding: 14px 16px;
+  border-top: 1px solid var(--border); background: var(--surface);
+}
+.input {
+  flex: 1; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 24px; padding: 10px 16px; font-size: 14px; color: var(--text);
+  outline: none; font-family: var(--font-body); transition: border-color 0.15s;
+}
+.input:focus { border-color: var(--border2); }
+.input::placeholder { color: var(--text3); }
+.sendBtn {
+  padding: 10px 18px; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 24px; font-size: 13px; font-weight: 700; color: var(--text2);
+  cursor: pointer; transition: all 0.15s;
+}
+.sendBtn:hover { border-color: var(--border2); color: var(--text); }
+.waBtn {
+  padding: 10px 18px; background: var(--green); border: none;
+  border-radius: 24px; font-size: 13px; font-weight: 700; color: #fff;
+  cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.15s;
+}
+.waBtn:hover { background: #16a34a; }
+
+/* ── Sidebar ── */
+.sideInfo { display: flex; flex-direction: column; gap: 16px; }
+
+.advisorCard {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-xl); padding: 24px; text-align: center;
+}
+.sideAvatar {
+  width: 72px; height: 72px; border-radius: 50%; object-fit: cover;
+  margin: 0 auto 12px; background: var(--surface3);
+  border: 3px solid var(--accent);
+}
+.sideAdvisorName { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
+.sideAdvisorRole { font-size: 13px; color: var(--text2); margin-bottom: 10px; }
+.onlineBadge {
+  display: inline-block; font-size: 11px; font-weight: 700;
+  color: var(--green); margin-bottom: 6px;
+}
+.responseTime { font-size: 12px; color: var(--text3); }
+
+.contactMethods { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 20px; }
+.contactMethodsTitle { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text2); margin-bottom: 14px; }
+.contactMethod {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; background: none; border: none;
+  padding: 9px; border-radius: var(--radius-sm);
+  cursor: pointer; transition: background 0.12s; text-align: left;
+}
+.contactMethod:hover { background: var(--surface2); }
+.contactIcon  { font-size: 22px; }
+.contactLabel { font-size: 13px; font-weight: 700; color: var(--text); }
+.contactSub   { font-size: 11px; color: var(--text2); }
+
+.catalogBtn {
+  width: 100%; padding: 13px; background: var(--accent); color: #fff;
+  border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: all 0.18s;
+}
+.catalogBtn:hover { background: var(--accent2); transform: translateY(-1px); }
+
+@media (max-width: 768px) {
+  .page   { padding: 16px; }
+  .layout { grid-template-columns: 1fr; }
+  .chatBox { height: 70vh; }
+  .sideInfo { order: -1; }
+}

@@ -1,0 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+/* ── Tema Principal (Oscuro) ── */
+:root {
+  --bg:           #0e0e0f;
+  --bg2:          #141416;
+  --surface:      #1a1a1d;
+  --surface2:     #222226;
+  --surface3:     #2a2a2e;
+  --text:         #f0ede8;
+  --text2:        #9a9a9f;
+  --text3:        #5a5a60;
+  --border:       #2e2e34;
+  --border2:      #3a3a40;
+  --accent:       #f97316;       /* naranja */
+  --accent2:      #fb923c;
+  --accent-dim:   rgba(249,115,22,0.15);
+  --accent-glow:  rgba(249,115,22,0.35);
+  --green:        #22c55e;
+  --green-dim:    rgba(34,197,94,0.15);
+  --red:          #ef4444;
+  --red-dim:      rgba(239,68,68,0.12);
+  --gold:         #f59e0b;
+  --nav-bg:       rgba(14,14,15,0.92);
+  --shadow-sm:    0 1px 4px rgba(0,0,0,0.4);
+  --shadow:       0 4px 20px rgba(0,0,0,0.5);
+  --shadow-lg:    0 12px 48px rgba(0,0,0,0.7);
+  --shadow-glow:  0 0 32px rgba(249,115,22,0.2);
+  --radius-sm:    6px;
+  --radius:       10px;
+  --radius-lg:    16px;
+  --radius-xl:    22px;
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+}
+
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+a   { text-decoration: none; color: inherit; }
+button { cursor: pointer; font-family: var(--font-body); }
+img { display: block; max-width: 100%; }
+ul  { list-style: none; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border2); }

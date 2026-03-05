@@ -1,0 +1,91 @@
+.footer { background: #080809; color: rgba(255,255,255,0.65); }
+
+/* Strip */
+.strip {
+  display: flex; justify-content: center;
+  background: #0f0f10; border-bottom: 1px solid rgba(249,115,22,0.12);
+  flex-wrap: wrap;
+}
+.stripItem {
+  padding: 13px 28px; font-size: 12px; font-weight: 700;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  color: rgba(255,255,255,0.5); border-right: 1px solid rgba(255,255,255,0.05);
+  flex: 1; text-align: center; min-width: 200px;
+}
+.stripItem:last-child { border-right: none; }
+
+/* Main */
+.main {
+  display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1.6fr;
+  gap: 48px; padding: 56px 48px;
+  max-width: 1280px; margin: 0 auto;
+}
+
+.brand {}
+.logo { display: flex; align-items: center; gap: 8px; cursor: pointer; background: none; border: none; margin-bottom: 16px; }
+.logoIcon { font-size: 22px; }
+.logoText { font-family: var(--font-display); font-size: 22px; font-weight: 900; color: #fff; text-transform: uppercase; letter-spacing: 1px; }
+.logoAccent { color: var(--accent); }
+.brandDesc { font-size: 13px; line-height: 1.7; color: rgba(255,255,255,0.45); margin-bottom: 18px; max-width: 280px; }
+
+.socials { display: flex; gap: 8px; margin-bottom: 18px; }
+.socialBtn {
+  width: 36px; height: 36px; border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; cursor: pointer; text-decoration: none; transition: all 0.15s;
+}
+.socialBtn:hover { background: var(--accent-dim); border-color: rgba(249,115,22,0.3); transform: translateY(-2px); }
+
+.contact { display: flex; flex-direction: column; gap: 5px; }
+.contact p { font-size: 12px; color: rgba(255,255,255,0.4); }
+
+.col {}
+.colTitle { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; color: #fff; margin-bottom: 18px; }
+.colList  { display: flex; flex-direction: column; gap: 9px; }
+.colLink  { background: none; border: none; font-size: 13px; color: rgba(255,255,255,0.45); cursor: pointer; text-align: left; padding: 0; transition: color 0.15s; font-family: var(--font-body); }
+.colLink:hover { color: var(--accent); }
+
+.newsletter {}
+.newsletterSub  { font-size: 12px; color: rgba(255,255,255,0.4); margin-bottom: 12px; line-height: 1.6; }
+.newsletterForm { display: flex; margin-bottom: 6px; }
+.newsletterInput {
+  flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  border-right: none; border-radius: 6px 0 0 6px; padding: 9px 12px;
+  font-size: 13px; color: #fff; outline: none; font-family: var(--font-body);
+}
+.newsletterInput::placeholder { color: rgba(255,255,255,0.25); }
+.newsletterInput:focus { border-color: rgba(249,115,22,0.4); }
+.newsletterBtn {
+  background: var(--accent); color: #fff; border: none;
+  border-radius: 0 6px 6px 0; padding: 9px 14px; font-size: 16px; font-weight: 900; cursor: pointer; transition: background 0.15s;
+}
+.newsletterBtn:hover { background: var(--accent2); }
+.newsletterNote { font-size: 11px; color: rgba(255,255,255,0.25); margin-bottom: 20px; }
+
+.marcas {}
+.marcasLabel { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.25); margin-bottom: 8px; }
+.marcasGrid  { display: flex; flex-wrap: wrap; gap: 6px; }
+.marcaChip   { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 4px; padding: 4px 10px; font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.4); }
+
+/* Bancos */
+.bancosRow {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 48px; border-top: 1px solid rgba(255,255,255,0.05); flex-wrap: wrap;
+}
+.bancosLabel { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.06em; }
+.bancos      { display: flex; gap: 8px; flex-wrap: wrap; }
+.bancoChip   { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.07); border-radius: 4px; padding: 5px 12px; font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.4); }
+
+/* Bottom */
+.bottom {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 48px; border-top: 1px solid rgba(255,255,255,0.05); flex-wrap: wrap; gap: 10px;
+}
+.copy      { font-size: 12px; color: rgba(255,255,255,0.25); }
+.legal     { display: flex; gap: 20px; }
+.legalLink { background: none; border: none; font-size: 12px; color: rgba(255,255,255,0.25); cursor: pointer; transition: color 0.15s; font-family: var(--font-body); padding: 0; }
+.legalLink:hover { color: rgba(255,255,255,0.6); }
+
+@media (max-width: 1024px) { .main { grid-template-columns: 1fr 1fr 1fr; } .brand { grid-column: 1/-1; } }
+@media (max-width: 640px)  { .main { grid-template-columns: 1fr 1fr; padding: 32px 20px; gap: 28px; } .newsletter { grid-column: 1/-1; } .bancosRow, .bottom { padding: 14px 20px; } }
