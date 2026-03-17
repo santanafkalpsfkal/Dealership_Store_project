@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { MOTOS, formatUSD } from '../data/motos';
+import { formatUSD } from '../data/motos';
 import MotoCard from '../components/ui/MotoCard';
 import s from './Detalle.module.css';
 
@@ -9,13 +9,26 @@ const TABS = ['Opciones', 'Descripción', 'Recurrentes'];
 
 export default function DetallePage() {
   const navigate  = useNavigate();
-  const { selectedMoto, favs, toggleFav, showNotif, setSelectedMoto } = useApp();
-  const moto = selectedMoto ?? MOTOS[0];
+  const { products, selectedMoto, favs, toggleFav, showNotif, setSelectedMoto } = useApp();
+  const moto = selectedMoto ?? products[0];
   const [activeImg,  setActiveImg]  = useState(0);
   const [activeTab,  setActiveTab]  = useState('Opciones');
 
+  if (!moto) {
+    return (
+      <main className={s.page}>
+        <div className={s.layout}>
+          <div className={s.info}>
+            <h1 className={s.name}>Sin producto seleccionado</h1>
+            <p className={s.desc}>Selecciona una moto desde el catálogo para ver su detalle.</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   const isFav = favs.includes(moto.id);
-  const similares = MOTOS.filter(m => m.estilo === moto.estilo && m.id !== moto.id).slice(0, 3);
+  const similares = products.filter(m => m.estilo === moto.estilo && m.id !== moto.id).slice(0, 3);
 
   return (
     <main className={s.page}>

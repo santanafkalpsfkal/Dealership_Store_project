@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MOTOS, formatUSD } from '../data/motos';
 import { useApp } from '../context/AppContext';
 import MotoCard from '../components/ui/MotoCard';
 import s from './Home.module.css';
@@ -87,9 +86,24 @@ function HeroCarousel() {
 /* ── Home page ── */
 export default function HomePage() {
   const navigate = useNavigate();
-  const { setSelectedMoto } = useApp();
-  const ofertas = MOTOS.slice(0, 3);
-  const populares = MOTOS.filter(m => m.rating >= 4.7);
+  const { products } = useApp();
+
+  const premiumBrands = useMemo(() => [
+    'yamaha', 'honda', 'suzuki', 'kawasaki', 'ducati', 'bmw',
+  ], []);
+
+  const premiumProducts = useMemo(() => {
+    const source = Array.isArray(products) ? products : [];
+    return source
+      .filter((p) => premiumBrands.includes(String(p.marca || '').toLowerCase()))
+      .sort((a, b) => Number(b.precio || 0) - Number(a.precio || 0));
+  }, [products, premiumBrands]);
+
+  const ofertas = premiumProducts.slice(0, 3);
+  const populares = [...premiumProducts]
+    .sort((a, b) => Number(b.rating || 0) - Number(a.rating || 0))
+    .slice(0, 4);
+  const marcasPremiumCount = new Set(premiumProducts.map((p) => p.marca).filter(Boolean)).size;
 
   return (
     <main>
@@ -98,8 +112,8 @@ export default function HomePage() {
       {/* Stats strip */}
       <div className={s.statsBar}>
         {[
-          { num: '500+', label: 'Motos disponibles' },
-          { num: '12',   label: 'Marcas premium' },
+          { num: String(products.length || 0), label: 'Motos disponibles' },
+          { num: String(marcasPremiumCount || 0), label: 'Marcas premium' },
           { num: '6',    label: 'Bancos aliados' },
           { num: '24h',  label: 'Aprobación crédito' },
         ].map(st => (
@@ -119,9 +133,13 @@ export default function HomePage() {
           </div>
           <button className={s.seeAll} onClick={() => navigate('/catalogo')}>Ver Todo →</button>
         </div>
-        <div className={s.grid3}>
-          {ofertas.map(m => <MotoCard key={m.id} moto={m} />)}
-        </div>
+        {ofertas.length ? (
+          <div className={s.grid3}>
+            {ofertas.map(m => <MotoCard key={m.id} moto={m} />)}
+          </div>
+        ) : (
+          <p className={s.finSub}>Aun no hay motos premium publicadas en la base de datos.</p>
+        )}
       </section>
 
       {/* Banner financiamiento */}
@@ -150,9 +168,13 @@ export default function HomePage() {
           </div>
           <button className={s.seeAll} onClick={() => navigate('/catalogo')}>Ver Todo →</button>
         </div>
-        <div className={s.grid4}>
-          {populares.map(m => <MotoCard key={m.id} moto={m} compact />)}
-        </div>
+        {populares.length ? (
+          <div className={s.grid4}>
+            {populares.map(m => <MotoCard key={m.id} moto={m} compact />)}
+          </div>
+        ) : (
+          <p className={s.finSub}>No hay productos destacados para mostrar.</p>
+        )}
       </section>
 
       {/* Marcas */}

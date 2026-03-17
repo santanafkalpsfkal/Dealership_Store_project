@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MOTOS, BANCOS, formatUSD } from '../data/motos';
+import { BANCOS, formatUSD } from '../data/motos';
+import { useApp } from '../context/AppContext';
 import s from './Financiamiento.module.css';
 
 const PLAZOS = [12, 18, 24, 36, 48, 60];
@@ -8,12 +9,35 @@ const TASA_ANUAL = 0.14; // 14% anual
 
 export default function FinanciamientoPage() {
   const navigate = useNavigate();
+  const { products } = useApp();
   const [enganche, setEnganche] = useState(3000);
   const [plazo,    setPlazo]    = useState(24);
   const [banco,    setBanco]    = useState('BBVA');
-  const [motoId,   setMotoId]   = useState(1);
+  const [motoId,   setMotoId]   = useState(null);
 
-  const moto = MOTOS.find(m => m.id === motoId) ?? MOTOS[0];
+  useEffect(() => {
+    if (!products.length) return;
+    const exists = products.some((item) => item.id === motoId);
+    if (!exists) {
+      setMotoId(products[0].id);
+    }
+  }, [products, motoId]);
+
+  const moto = products.find((m) => m.id === motoId) ?? products[0];
+
+  if (!moto) {
+    return (
+      <main className={s.page}>
+        <div className={s.header}>
+          <div className={s.headerLeft}>
+            <span className={s.chip}>💰 Simulador</span>
+            <h1 className={s.title}>FINANCIAMIENTO</h1>
+            <p className={s.sub}>No hay motos activas en la base de datos para simular.</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   const { cuotaMensual, totalPagar, interesTotal } = useMemo(() => {
     const capital  = Math.max(0, moto.precio - enganche);
@@ -71,7 +95,7 @@ export default function FinanciamientoPage() {
           <div className={s.field}>
             <label className={s.label}>Selecciona la moto</label>
             <select className={s.select} value={motoId} onChange={e => setMotoId(+e.target.value)}>
-              {MOTOS.map(m => (
+              {products.map(m => (
                 <option key={m.id} value={m.id}>{m.name} — {formatUSD(m.precio)}</option>
               ))}
             </select>
