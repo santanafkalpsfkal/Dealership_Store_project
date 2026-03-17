@@ -23,7 +23,18 @@ function normalizeSpecs(input = {}) {
 }
 
 function normalizeImages(input, mainImage) {
-  const raw = Array.isArray(input) ? input : [];
+  let raw = [];
+  if (Array.isArray(input)) {
+    raw = input;
+  } else if (typeof input === 'string') {
+    try {
+      const parsed = JSON.parse(input);
+      raw = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      raw = [];
+    }
+  }
+
   const cleaned = raw
     .map((item) => String(item || '').trim())
     .filter(Boolean);
@@ -87,8 +98,8 @@ export function validateNormalizedProduct(product) {
 }
 
 export function mapDbProductToUi(row = {}) {
-  const image = toText(row.img, '');
-  const images = normalizeImages(row.imagenes, image);
+  const images = normalizeImages(row.imagenes, toText(row.img, ''));
+  const image = toText(row.img, images[0] || '');
   const specs = normalizeSpecs(row.specs);
   const year = toNumber(row.anio, CURRENT_YEAR);
   const reviews = Math.max(0, Math.trunc(toNumber(row.resenas, 0)));

@@ -194,21 +194,6 @@ export function AppProvider({ children }) {
       return false;
     }
 
-    const normalizedEmail = (email || '').trim().toLowerCase();
-    if (normalizedEmail === adminEmail && password === adminPassword) {
-      const adminUser = { id: 'admin', name: 'Administrador', email: adminEmail, rol: 'admin' };
-      setLoggingIn(true);
-      await new Promise((resolve) => setTimeout(resolve, 240));
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('mp_session_v1', JSON.stringify(adminUser));
-      }
-      setUser(adminUser);
-      setAuthError('');
-      showNotif(`Bienvenido, ${adminUser.name}`, 'success');
-      setLoggingIn(false);
-      return { ok: true, user: adminUser };
-    }
-
     const res = await loginUser({ email, password });
     if (!res.ok) {
       setAuthError(res.message || 'No se pudo iniciar sesión');
@@ -222,7 +207,7 @@ export function AppProvider({ children }) {
     showNotif(`Inicio de sesion exitoso: ${res.user.name || res.user.email}`, 'success');
     setLoggingIn(false);
     return { ok: true, user: res.user };
-  }, [adminEmail, adminPassword, showNotif]);
+  }, [showNotif]);
 
   const register = useCallback(async (name, email, password) => {
     if (!name || !email || !password) {

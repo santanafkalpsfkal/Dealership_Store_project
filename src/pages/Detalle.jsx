@@ -33,6 +33,7 @@ export default function DetallePage() {
         <div className={s.gallery}>
           <div className={s.mainImgWrap}>
             <img src={moto.imgs?.[activeImg] ?? moto.img} alt={moto.name} className={s.mainImg}
+              referrerPolicy="no-referrer"
               onError={e => { e.target.src = 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800'; }} />
             <button
               className={`${s.favBtn} ${isFav ? s.favActive : ''}`}
@@ -45,7 +46,7 @@ export default function DetallePage() {
             {(moto.imgs ?? [moto.img]).map((img, i) => (
               <div key={i} className={`${s.thumb} ${i === activeImg ? s.thumbActive : ''}`}
                 onClick={() => setActiveImg(i)}>
-                <img src={img} alt="" onError={e => { e.target.src = moto.img; }} />
+                <img src={img} alt="" referrerPolicy="no-referrer" onError={e => { e.target.src = moto.img; }} />
               </div>
             ))}
           </div>

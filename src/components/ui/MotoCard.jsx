@@ -31,6 +31,7 @@ export default function MotoCard({ moto, compact = false }) {
       {/* Imagen */}
       <div className={s.imgWrap}>
         <img src={moto.img} alt={moto.name} className={s.img} loading="lazy"
+          referrerPolicy="no-referrer"
           onError={e => { e.target.src = 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600'; }} />
         <div className={s.imgOverlay} />
 

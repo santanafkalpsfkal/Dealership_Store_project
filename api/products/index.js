@@ -3,10 +3,17 @@ import db from '../../src/lib/db.js';
 import { mapDbProductToUi, normalizeProductInput, validateNormalizedProduct } from '../../src/lib/products.js';
 
 function isAdmin(user) {
-  const envAdmin = String(process.env.ADMIN_EMAIL || 'admin@concesionario.com').trim().toLowerCase();
+  const candidates = [
+    process.env.ADMIN_EMAIL,
+    process.env.VITE_ADMIN_EMAIL,
+    'admin@concesionario.com',
+  ]
+    .map((value) => String(value || '').trim().toLowerCase())
+    .filter(Boolean);
+
   const role = String(user?.rol || '').trim().toLowerCase();
   const email = String(user?.email || '').trim().toLowerCase();
-  return role === 'admin' || email === envAdmin;
+  return role === 'admin' || candidates.includes(email);
 }
 
 async function handler(req, res) {
