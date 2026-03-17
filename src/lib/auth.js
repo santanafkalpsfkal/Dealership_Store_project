@@ -185,7 +185,7 @@ export function requireAuth(handler) {
 
       const session = await db.findSessionByToken(token);
       if (!session) {
-        return res.status(401).json({ error: 'Sesion expirada' });
+        return res.status(401).json({ error: 'Sesión expirada' });
       }
 
       req.user = decoded;

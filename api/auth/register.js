@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     }
 
     if (password.length < 6) {
-      return res.status(400).json({ error: 'La contrasena debe tener al menos 6 caracteres' });
+      return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
     }
 
     const result = await registerUser({ nombre, name, email, password }, req, res);

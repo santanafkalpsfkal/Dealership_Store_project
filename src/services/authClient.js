@@ -51,6 +51,12 @@ function clearFallbackSession() {
   localStorage.removeItem(FALLBACK_SESSION_KEY);
 }
 
+function canUseFallbackAuth() {
+  if (typeof window === 'undefined') return false;
+  const host = window.location.hostname;
+  return host === 'localhost' || host === '127.0.0.1';
+}
+
 function fallbackRegister({ name, email, password }) {
   const normalizedEmail = email.trim().toLowerCase();
   const cleanName = name.trim();
@@ -64,7 +70,7 @@ function fallbackRegister({ name, email, password }) {
   }
 
   if (password.length < 6) {
-    return { ok: false, message: 'La contrasena debe tener al menos 6 caracteres' };
+    return { ok: false, message: 'La contraseña debe tener al menos 6 caracteres' };
   }
 
   const users = getFallbackUsers();
@@ -94,7 +100,7 @@ function fallbackLogin({ email, password }) {
   const found = users.find((u) => u.email === normalizedEmail);
 
   if (!found || found.password !== password) {
-    return { ok: false, message: 'Correo o contrasena incorrectos' };
+    return { ok: false, message: 'Correo o contraseña incorrectos' };
   }
 
   const user = { id: found.id, name: found.name, email: found.email, rol: found.rol || 'usuario' };
@@ -123,7 +129,7 @@ export async function registerUser(payload) {
     return { ok: true, ...apiRes, user: apiRes.user ? { id: apiRes.user.id, name: apiRes.user.nombre || apiRes.user.name, email: apiRes.user.email, rol: apiRes.user.rol || 'usuario' } : null };
   } catch (error) {
     const status = Number(error?.status || 0);
-    if (status === 0 || status === 404 || status === 405 || status >= 500) {
+    if (canUseFallbackAuth() && (status === 0 || status === 404 || status === 405 || status >= 500)) {
       return fallbackRegister(payload);
     }
     return { ok: false, status, message: error.message || 'No se pudo registrar' };
@@ -146,10 +152,10 @@ export async function loginUser(payload) {
     return { ok: true, ...apiRes, user: apiRes.user ? { id: apiRes.user.id, name: apiRes.user.nombre || apiRes.user.name, email: apiRes.user.email, rol: apiRes.user.rol || 'usuario' } : null };
   } catch (error) {
     const status = Number(error?.status || 0);
-    if (status === 0 || status === 404 || status === 405 || status >= 500) {
+    if (canUseFallbackAuth() && (status === 0 || status === 404 || status === 405 || status >= 500)) {
       return fallbackLogin(payload);
     }
-    return { ok: false, status, message: error.message || 'No se pudo iniciar sesion' };
+    return { ok: false, status, message: error.message || 'No se pudo iniciar sesión' };
   }
 }
 
@@ -173,9 +179,9 @@ export async function getCurrentUser() {
   }
 
   const localUser = getFallbackSession();
-  if (localUser) {
+  if (canUseFallbackAuth() && localUser) {
     return { ok: true, user: localUser, source: 'fallback' };
   }
 
-  return { ok: false, message: 'Sin sesion activa' };
+  return { ok: false, message: 'Sin sesión activa' };
 }

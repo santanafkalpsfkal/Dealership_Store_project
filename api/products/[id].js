@@ -2,7 +2,7 @@ import { requireAuth } from '../../src/lib/auth.js';
 import db from '../../src/lib/db.js';
 import { mapDbProductToUi, normalizeProductInput, validateNormalizedProduct } from '../../src/lib/products.js';
 
-function isAdmin(user) {
+async function isAdmin(user) {
   const candidates = [
     process.env.ADMIN_EMAIL,
     process.env.VITE_ADMIN_EMAIL,
@@ -13,7 +13,25 @@ function isAdmin(user) {
 
   const role = String(user?.rol || '').trim().toLowerCase();
   const email = String(user?.email || '').trim().toLowerCase();
-  return role === 'admin' || candidates.includes(email);
+  if (role === 'admin' || candidates.includes(email)) return true;
+
+  try {
+    const userId = Number(user?.id);
+    const lookupById = Number.isInteger(userId) && userId > 0;
+    const sql = lookupById
+      ? 'SELECT email, rol FROM usuarios WHERE id = $1 LIMIT 1'
+      : 'SELECT email, rol FROM usuarios WHERE LOWER(email) = LOWER($1) LIMIT 1';
+    const params = lookupById ? [userId] : [email];
+    const { rows } = await db.query(sql, params);
+    const dbUser = rows[0];
+    if (!dbUser) return false;
+
+    const dbRole = String(dbUser.rol || '').trim().toLowerCase();
+    const dbEmail = String(dbUser.email || '').trim().toLowerCase();
+    return dbRole === 'admin' || candidates.includes(dbEmail);
+  } catch {
+    return false;
+  }
 }
 
 function parseProductId(req) {
@@ -24,7 +42,7 @@ function parseProductId(req) {
 }
 
 async function handler(req, res) {
-  if (!isAdmin(req.user)) {
+  if (!(await isAdmin(req.user))) {
     return res.status(403).json({ ok: false, error: 'Solo admin puede modificar productos' });
   }
 

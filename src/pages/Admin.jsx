@@ -167,7 +167,7 @@ export default function AdminPage() {
             <input name="tipo" value={form.tipo} onChange={handleChange} placeholder="Tipo" />
             <input name="precio" type="number" value={form.precio} onChange={handleChange} placeholder="Precio" />
             <input name="cuota" type="number" value={form.cuota} onChange={handleChange} placeholder="Cuota" />
-            <input name="ano" type="number" value={form.ano} onChange={handleChange} placeholder="Ano" />
+            <input name="ano" type="number" value={form.ano} onChange={handleChange} placeholder="Año" />
             <input name="km" type="number" value={form.km} onChange={handleChange} placeholder="KM" />
             <input name="color" value={form.color} onChange={handleChange} placeholder="Color" />
             <input name="estado" value={form.estado} onChange={handleChange} placeholder="Estado" />
@@ -215,7 +215,7 @@ export default function AdminPage() {
         <table className={s.table}>
           <thead>
             <tr>
-              <th>ID</th><th>Producto</th><th>Marca</th><th>Precio</th><th>Ano</th><th>Acciones</th>
+              <th>ID</th><th>Producto</th><th>Marca</th><th>Precio</th><th>Año</th><th>Acciones</th>
             </tr>
           </thead>
           <tbody>

@@ -9,7 +9,7 @@ export default async function handler(req, res) {
     const { email, password } = req.body || {};
 
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email y contrasena requeridos' });
+      return res.status(400).json({ error: 'Email y contraseña requeridos' });
     }
 
     const result = await loginUser({ email, password }, req, res);
@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     }
 
     return res.status(500).json({
-      error: 'Error al iniciar sesion',
+      error: 'Error al iniciar sesión',
       detail: process.env.NODE_ENV === 'development' ? String(error.message || error) : undefined,
     });
   }

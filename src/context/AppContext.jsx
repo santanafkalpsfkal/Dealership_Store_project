@@ -190,7 +190,7 @@ export function AppProvider({ children }) {
       return false;
     }
     if (password.length < 6) {
-      setAuthError('Contrasena muy corta');
+      setAuthError('Contraseña muy corta');
       return false;
     }
 
@@ -204,7 +204,7 @@ export function AppProvider({ children }) {
     await new Promise((resolve) => setTimeout(resolve, 240));
     setUser(res.user);
     setAuthError('');
-    showNotif(`Inicio de sesion exitoso: ${res.user.name || res.user.email}`, 'success');
+    showNotif(`Inicio de sesión exitoso: ${res.user.name || res.user.email}`, 'success');
     setLoggingIn(false);
     return { ok: true, user: res.user };
   }, [showNotif]);
@@ -237,11 +237,11 @@ export function AppProvider({ children }) {
 
   const logout = useCallback(async () => {
     setLoggingOut(true);
-    showNotif('Cerrando sesion...', 'info');
+    showNotif('Cerrando sesión...', 'info');
     await new Promise((resolve) => setTimeout(resolve, 280));
     await logoutUser();
     setUser(null);
-    showNotif('Sesion cerrada correctamente', 'success');
+    showNotif('Sesión cerrada correctamente', 'success');
     setLoggingOut(false);
   }, [showNotif]);
 
