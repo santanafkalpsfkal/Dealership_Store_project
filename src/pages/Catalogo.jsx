@@ -8,7 +8,7 @@ export default function CatalogoPage() {
   const { products } = useApp();
   const [marcasFilt,  setMarcasFilt]  = useState([]);
   const [estilosFilt, setEstilosFilt] = useState([]);
-  const [precioMax,   setPrecioMax]   = useState(30000);
+  const [precioMax,   setPrecioMax]   = useState(0);
   const [precioMin,   setPrecioMin]   = useState(0);
   const [añoFilt,     setAñoFilt]     = useState('');
   const [conFin,      setConFin]      = useState(false);
@@ -20,6 +20,15 @@ export default function CatalogoPage() {
 
   const marcas = useMemo(() => [...new Set(products.map((m) => m.marca).filter(Boolean))], [products]);
   const estilos = useMemo(() => [...new Set(products.map((m) => m.estilo).filter(Boolean))], [products]);
+  const maxCatalogPrice = useMemo(() => {
+    const max = products.reduce((acc, item) => Math.max(acc, Number(item.precio) || 0), 0);
+    return max > 0 ? max : 30000;
+  }, [products]);
+  const years = useMemo(() => {
+    return [...new Set(products.map((m) => String(m.año || m.anio || '')).filter(Boolean))]
+      .sort((a, b) => Number(b) - Number(a));
+  }, [products]);
+  const effectivePrecioMax = precioMax > 0 ? precioMax : maxCatalogPrice;
 
   const filtered = useMemo(() => {
     let res = [...products];
@@ -27,12 +36,12 @@ export default function CatalogoPage() {
     if (estilosFilt.length) res = res.filter(m => estilosFilt.includes(m.estilo));
     if (conFin)             res = res.filter(m => m.financiamiento);
     if (añoFilt)            res = res.filter(m => String(m.año) === añoFilt);
-    res = res.filter(m => m.precio >= precioMin && m.precio <= precioMax);
+    res = res.filter(m => m.precio >= precioMin && m.precio <= effectivePrecioMax);
     if (sortBy === 'precio-asc')  res.sort((a, b) => a.precio - b.precio);
     if (sortBy === 'precio-desc') res.sort((a, b) => b.precio - a.precio);
     if (sortBy === 'rating')      res.sort((a, b) => b.rating - a.rating);
     return res;
-  }, [products, marcasFilt, estilosFilt, conFin, añoFilt, precioMin, precioMax, sortBy]);
+  }, [products, marcasFilt, estilosFilt, conFin, añoFilt, precioMin, effectivePrecioMax, sortBy]);
 
   return (
     <main className={s.page}>
@@ -92,15 +101,15 @@ export default function CatalogoPage() {
             <p className={s.sideTitle}>💲 Precio</p>
             <div className={s.rangeRow}>
               <span className={s.rangeVal}>{formatUSD(precioMin)}</span>
-              <span className={s.rangeVal}>{formatUSD(precioMax)}</span>
+              <span className={s.rangeVal}>{formatUSD(effectivePrecioMax)}</span>
             </div>
-            <input type="range" className={s.range} min={0} max={30000} step={500}
-              value={precioMax} onChange={e => setPrecioMax(+e.target.value)} />
+            <input type="range" className={s.range} min={0} max={maxCatalogPrice} step={Math.max(500, Math.round(maxCatalogPrice / 100))}
+              value={effectivePrecioMax} onChange={e => setPrecioMax(+e.target.value)} />
           </div>
 
           <div className={s.sideSection}>
             <p className={s.sideTitle}>📅 Año</p>
-            {['2023','2022','2021'].map(a => (
+            {years.map(a => (
               <label key={a} className={s.checkRow}>
                 <input type="radio" className={s.check}
                   checked={añoFilt === a}

@@ -1,19 +1,24 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
-import { MOTOS } from '../data/motos';
 import {
   loginUser,
   registerUser,
   logoutUser,
   getCurrentUser,
 } from '../services/authClient';
+import {
+  listProducts,
+  createProduct,
+  editProduct,
+  removeProduct,
+} from '../services/productsClient';
 
 const AppContext = createContext(null);
-const PRODUCTS_STORAGE_KEY = 'mp_products_v1';
 const VISITS_STORAGE_KEY = 'mp_visits_v1';
 const VISITORS_STORAGE_KEY = 'mp_unique_visitors_v1';
 const ACTIVE_VISITORS_STORAGE_KEY = 'mp_active_visitors_v1';
 const VISITOR_ID_KEY = 'mp_visitor_id_v1';
 const FALLBACK_USERS_KEY = 'mp_users_v1';
+const PRODUCTS_STORAGE_KEY = 'mp_products_v1';
 
 function safeParse(value, fallback) {
   try {
@@ -23,47 +28,8 @@ function safeParse(value, fallback) {
   }
 }
 
-function getInitialProducts() {
-  if (typeof window === 'undefined') return MOTOS;
-  const saved = safeParse(localStorage.getItem(PRODUCTS_STORAGE_KEY), null);
-  return Array.isArray(saved) && saved.length ? saved : MOTOS;
-}
-
 function createVisitorId() {
   return `v_${Date.now()}_${Math.random().toString(16).slice(2, 10)}`;
-}
-
-function normalizeProductPayload(input = {}) {
-  const year = Number(input.ano ?? input.año);
-  const reviews = Number(input.resenas ?? input.reseñas);
-  const image = (input.img || '').trim();
-
-  return {
-    name: (input.name || '').trim(),
-    marca: (input.marca || '').trim(),
-    tipo: (input.tipo || 'Moto').trim(),
-    estilo: (input.estilo || '').trim(),
-    precio: Number(input.precio) || 0,
-    cuota: Number(input.cuota) || 0,
-    año: Number.isFinite(year) && year > 0 ? year : new Date().getFullYear(),
-    km: Number(input.km) || 0,
-    color: (input.color || 'Negro').trim(),
-    financiamiento: Boolean(input.financiamiento),
-    estado: (input.estado || 'Nuevo').trim(),
-    rating: Number(input.rating) || 4.5,
-    reseñas: Number.isFinite(reviews) && reviews >= 0 ? reviews : 0,
-    img: image,
-    imgs: image ? [image] : [],
-    descripcion: (input.descripcion || 'Moto agregada por el panel admin.').trim(),
-    specs: {
-      motor: (input.motor || 'N/D').trim(),
-      potencia: (input.potencia || 'N/D').trim(),
-      par: (input.par || 'N/D').trim(),
-      peso: (input.peso || 'N/D').trim(),
-      velocidad: (input.velocidad || 'N/D').trim(),
-    },
-    badge: input.badge?.trim() || null,
-  };
 }
 
 export function AppProvider({ children }) {
@@ -78,7 +44,8 @@ export function AppProvider({ children }) {
   const [loggingOut, setLoggingOut] = useState(false);
 
   // ── Productos (CRUD Admin) ────────────────────────────────
-  const [products, setProducts] = useState(getInitialProducts);
+  const [products, setProducts] = useState([]);
+  const [productsLoading, setProductsLoading] = useState(true);
 
   // ── Dashboard Stats ────────────────────────────────────────
   const [dashboardStats, setDashboardStats] = useState({
@@ -109,11 +76,6 @@ export function AppProvider({ children }) {
   useEffect(() => () => {
     if (notifTimerRef.current) clearTimeout(notifTimerRef.current);
   }, []);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(products));
-  }, [products]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -166,6 +128,44 @@ export function AppProvider({ children }) {
       localStorage.setItem(ACTIVE_VISITORS_STORAGE_KEY, JSON.stringify(active));
     };
   }, [products.length]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadProducts = async () => {
+      setProductsLoading(true);
+      try {
+        const res = await listProducts();
+        if (!mounted) return;
+        if (res.ok) {
+          setProducts(res.products);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(res.products));
+          }
+        } else {
+          setProducts([]);
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem(PRODUCTS_STORAGE_KEY);
+          }
+        }
+      } catch {
+        if (mounted) {
+          setProducts([]);
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem(PRODUCTS_STORAGE_KEY);
+          }
+        }
+      } finally {
+        if (mounted) setProductsLoading(false);
+      }
+    };
+
+    loadProducts();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -261,57 +261,38 @@ export function AppProvider({ children }) {
   }, [showNotif]);
 
   const addProduct = useCallback((input) => {
-    const normalized = normalizeProductPayload(input);
-    if (!normalized.name || !normalized.marca || !normalized.estilo || !normalized.img) {
-      return { ok: false, message: 'Completa nombre, marca, estilo e imagen' };
-    }
-
-    let created = null;
-    setProducts((prev) => {
-      const maxId = prev.reduce((acc, p) => Math.max(acc, Number(p.id) || 0), 0);
-      created = { id: maxId + 1, ...normalized };
-      return [created, ...prev];
-    });
-
-    return { ok: true, product: created };
+    return createProduct(input).then((result) => {
+      if (!result.ok) return result;
+      setProducts((prev) => [result.product, ...prev.filter((p) => p.id !== result.product.id)]);
+      return result;
+    }).catch((error) => ({
+      ok: false,
+      message: error.message || 'No se pudo crear el producto',
+    }));
   }, []);
 
   const updateProduct = useCallback((id, input) => {
-    const normalized = normalizeProductPayload(input);
-    if (!normalized.name || !normalized.marca || !normalized.estilo || !normalized.img) {
-      return { ok: false, message: 'Completa nombre, marca, estilo e imagen' };
-    }
-
-    let updated = null;
-    setProducts((prev) => prev.map((p) => {
-      if (p.id !== id) return p;
-      updated = {
-        ...p,
-        ...normalized,
-        imgs: normalized.img ? [normalized.img] : p.imgs,
-      };
-      return updated;
+    const parsedId = Number(id);
+    return editProduct(parsedId, input).then((result) => {
+      if (!result.ok) return result;
+      setProducts((prev) => prev.map((p) => (Number(p.id) === parsedId ? result.product : p)));
+      return result;
+    }).catch((error) => ({
+      ok: false,
+      message: error.message || 'No se pudo actualizar el producto',
     }));
-
-    if (!updated) return { ok: false, message: 'No se encontro el producto' };
-    return { ok: true, product: updated };
   }, []);
 
   const deleteProduct = useCallback((id) => {
-    let deleted = null;
-    setProducts((prev) => {
-      const next = prev.filter((p) => {
-        if (p.id === id) {
-          deleted = p;
-          return false;
-        }
-        return true;
-      });
-      return next;
-    });
-
-    if (!deleted) return { ok: false, message: 'No se encontro el producto' };
-    return { ok: true, product: deleted };
+    const parsedId = Number(id);
+    return removeProduct(parsedId).then((result) => {
+      if (!result.ok) return result;
+      setProducts((prev) => prev.filter((p) => Number(p.id) !== parsedId));
+      return result;
+    }).catch((error) => ({
+      ok: false,
+      message: error.message || 'No se pudo eliminar el producto',
+    }));
   }, []);
 
   // ── Moto seleccionada ─────────────────────────────────────
@@ -334,7 +315,7 @@ export function AppProvider({ children }) {
   return (
     <AppContext.Provider value={{
       user, authLoading, loggingIn, loggingOut, isAdmin, adminEmail, login, register, logout, authError, setAuthError,
-      products, addProduct, updateProduct, deleteProduct, dashboardStats,
+      products, productsLoading, addProduct, updateProduct, deleteProduct, dashboardStats,
       selectedMoto, setSelectedMoto,
       favs, toggleFav,
       financiamiento, setFinanciamiento,

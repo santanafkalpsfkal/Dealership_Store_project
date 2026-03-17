@@ -40,6 +40,7 @@ export default function AdminPage() {
 
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingId, setEditingId] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
   const formRef = useRef(null);
 
   const topBrands = useMemo(() => {
@@ -98,31 +99,35 @@ export default function AdminPage() {
     setForm(EMPTY_FORM);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
 
     if (editingId) {
-      const result = updateProduct(editingId, form);
+      const result = await updateProduct(editingId, form);
       if (!result.ok) {
         showNotif(result.message, 'error');
+        setSubmitting(false);
         return;
       }
       showNotif(`Producto actualizado: ${result.product.name}`, 'success');
     } else {
-      const result = addProduct(form);
+      const result = await addProduct(form);
       if (!result.ok) {
         showNotif(result.message, 'error');
+        setSubmitting(false);
         return;
       }
       showNotif(`Producto agregado: ${result.product.name}`, 'success');
     }
 
     resetForm();
+    setSubmitting(false);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (!window.confirm('Seguro que deseas eliminar este producto?')) return;
-    const result = deleteProduct(id);
+    const result = await deleteProduct(id);
     if (!result.ok) {
       showNotif(result.message, 'error');
       return;
@@ -183,8 +188,8 @@ export default function AdminPage() {
             <span>Disponible para financiamiento</span>
           </label>
 
-          <button className={s.submitBtn} type="submit">
-            {editingId ? 'Guardar cambios' : 'Agregar producto'}
+          <button className={s.submitBtn} type="submit" disabled={submitting}>
+            {submitting ? 'Guardando...' : (editingId ? 'Guardar cambios' : 'Agregar producto')}
           </button>
         </form>
 
