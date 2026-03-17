@@ -165,6 +165,11 @@ export async function logoutUser() {
   return { ok: true };
 }
 
+export function logoutOnPageExit() {
+  authService.logoutKeepalive();
+  clearFallbackSession();
+}
+
 export async function getCurrentUser() {
   try {
     const user = await authService.getCurrentUser();

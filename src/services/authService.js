@@ -102,6 +102,27 @@ class AuthService {
     this.removeUser();
   }
 
+  logoutKeepalive() {
+    const token = this.getToken();
+
+    if (token) {
+      try {
+        fetch(`${API_URL}/api/auth/logout`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          keepalive: true,
+        });
+      } catch {
+        // Ignore page-exit network errors.
+      }
+    }
+
+    this.removeToken();
+    this.removeUser();
+  }
+
   isAuthenticated() {
     return Boolean(this.getToken());
   }

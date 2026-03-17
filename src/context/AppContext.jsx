@@ -4,6 +4,7 @@ import {
   registerUser,
   logoutUser,
   getCurrentUser,
+  logoutOnPageExit,
 } from '../services/authClient';
 import {
   listProducts,
@@ -34,7 +35,8 @@ function createVisitorId() {
 
 export function AppProvider({ children }) {
   const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || 'admin@concesionario.com').trim().toLowerCase();
-  const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123';
+  const adminIdleMinutes = Number(import.meta.env.VITE_ADMIN_IDLE_MINUTES || 15);
+  const userIdleMinutes = Number(import.meta.env.VITE_USER_IDLE_MINUTES || 60);
 
   // ── Auth ──────────────────────────────────────────────────
   const [user, setUser] = useState(null);
@@ -61,6 +63,8 @@ export function AppProvider({ children }) {
       || (user?.email && user.email.toLowerCase() === adminEmail)
   );
   const notifTimerRef = useRef(null);
+  const logoutLockRef = useRef(false);
+  const inactivityTimerRef = useRef(null);
 
   // ── Notificaciones ────────────────────────────────────────
   const [notif, setNotif] = useState({ show: false, text: '', type: 'info' });
@@ -236,6 +240,8 @@ export function AppProvider({ children }) {
   }, [adminEmail]);
 
   const logout = useCallback(async () => {
+    if (logoutLockRef.current) return;
+    logoutLockRef.current = true;
     setLoggingOut(true);
     showNotif('Cerrando sesión...', 'info');
     await new Promise((resolve) => setTimeout(resolve, 280));
@@ -243,7 +249,61 @@ export function AppProvider({ children }) {
     setUser(null);
     showNotif('Sesión cerrada correctamente', 'success');
     setLoggingOut(false);
+    logoutLockRef.current = false;
   }, [showNotif]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !user) return;
+
+    const minutes = isAdmin ? adminIdleMinutes : userIdleMinutes;
+    const timeoutMs = Math.max(1, minutes) * 60 * 1000;
+
+    const clearTimer = () => {
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+        inactivityTimerRef.current = null;
+      }
+    };
+
+    const scheduleLogout = () => {
+      clearTimer();
+      inactivityTimerRef.current = setTimeout(async () => {
+        if (logoutLockRef.current) return;
+        showNotif('Sesión cerrada por inactividad', 'warning');
+        await logout();
+      }, timeoutMs);
+    };
+
+    const activityEvents = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'];
+    activityEvents.forEach((eventName) => {
+      window.addEventListener(eventName, scheduleLogout, { passive: true });
+    });
+
+    scheduleLogout();
+
+    return () => {
+      clearTimer();
+      activityEvents.forEach((eventName) => {
+        window.removeEventListener(eventName, scheduleLogout);
+      });
+    };
+  }, [user, isAdmin, adminIdleMinutes, userIdleMinutes, logout, showNotif]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !user || !isAdmin) return;
+
+    const handlePageExit = () => {
+      logoutOnPageExit();
+    };
+
+    window.addEventListener('pagehide', handlePageExit);
+    window.addEventListener('beforeunload', handlePageExit);
+
+    return () => {
+      window.removeEventListener('pagehide', handlePageExit);
+      window.removeEventListener('beforeunload', handlePageExit);
+    };
+  }, [user, isAdmin]);
 
   const addProduct = useCallback((input) => {
     return createProduct(input).then((result) => {
